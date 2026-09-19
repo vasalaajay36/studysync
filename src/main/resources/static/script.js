@@ -87,3 +87,99 @@ document.getElementById("sessionForm").addEventListener("submit",async function(
 async function deleteSession(id){if(!confirm("Delete this study session?"))return;const response=await fetch(`${API}/study-sessions/${id}`,{method:"DELETE"});if(!response.ok){alert("Failed to delete session");return;}await loadDashboard();}
 
 loadDashboard();
+
+// GLOBAL SEARCH
+(function () {
+    const searchInput = document.querySelector('.search-box input');
+    const searchBox = document.querySelector('.search-box');
+    if (!searchInput || !searchBox) return;
+
+    searchBox.style.position = 'relative';
+
+    const results = document.createElement('div');
+    results.id = 'searchResults';
+    Object.assign(results.style, {
+        position: 'absolute', top: '48px', left: '0', right: '0',
+        background: '#fff', border: '1px solid #e1e6f0', borderRadius: '12px',
+        boxShadow: '0 14px 30px rgba(35,48,85,.14)', padding: '6px',
+        display: 'none', zIndex: '100', maxHeight: '320px', overflowY: 'auto'
+    });
+    searchBox.appendChild(results);
+
+    function escapeSearchHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = String(value);
+        return div.innerHTML;
+    }
+
+    function getSearchItems() {
+        const items = [];
+        document.querySelectorAll('.item').forEach((el) => {
+            const text = el.innerText.trim();
+            if (!text) return;
+            const section = el.closest('.section');
+            const title = section?.querySelector('.section-heading h2')?.innerText || 'StudySync';
+            items.push({ element: el, title, text });
+        });
+        document.querySelectorAll('.section[id]').forEach((section) => {
+            const heading = section.querySelector('.section-heading h2');
+            if (heading) items.push({ element: section, title: heading.innerText, text: section.innerText });
+        });
+        const studentPanel = document.getElementById('student-panel');
+        if (studentPanel) items.push({ element: studentPanel, title: 'Students', text: studentPanel.innerText });
+        return items;
+    }
+
+    function hideResults() {
+        results.style.display = 'none';
+        results.innerHTML = '';
+    }
+
+    function showResults(matches, query) {
+        results.innerHTML = '';
+        if (!matches.length) {
+            results.innerHTML = `<div style="padding:12px;color:#71809d;font-size:12px;text-align:center">No results for “${escapeSearchHtml(query)}”</div>`;
+            results.style.display = 'block';
+            return;
+        }
+        matches.slice(0, 8).forEach(({ element, title, text }) => {
+            const button = document.createElement('button');
+            const preview = text.replace(/\s+/g, ' ').slice(0, 80);
+            button.type = 'button';
+            button.style.cssText = 'display:block;width:100%;text-align:left;background:#fff;color:#24345f;border:0;border-radius:9px;padding:9px 10px;margin:2px 0;box-shadow:none;transform:none;cursor:pointer';
+            button.innerHTML = `<strong style="display:block;font-size:11px">${escapeSearchHtml(title)}</strong><span style="display:block;color:#71809d;font-size:10px;margin-top:2px">${escapeSearchHtml(preview)}</span>`;
+            button.addEventListener('mouseenter', () => button.style.background = '#f5f7ff');
+            button.addEventListener('mouseleave', () => button.style.background = '#fff');
+            button.addEventListener('click', () => {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.transition = 'box-shadow .2s, border-color .2s';
+                element.style.boxShadow = '0 0 0 3px rgba(91,80,232,.18)';
+                element.style.borderColor = '#8b82f4';
+                setTimeout(() => { element.style.boxShadow = ''; element.style.borderColor = ''; }, 1600);
+                hideResults();
+                searchInput.blur();
+            });
+            results.appendChild(button);
+        });
+        results.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) { hideResults(); return; }
+        const matches = getSearchItems().filter(({ text }) => text.toLowerCase().includes(query));
+        showResults(matches, searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            searchInput.value = '';
+            hideResults();
+            searchInput.blur();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!searchBox.contains(event.target)) hideResults();
+    });
+})();
