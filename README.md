@@ -1,12 +1,42 @@
+<div align="center">
+
 # StudySync
 
-> A Student Productivity & Academic Management Platform built with Spring Boot, MySQL, JPA/Hibernate, HTML, CSS, and JavaScript.
+### Student Productivity & Academic Management Platform
+
+A full-stack academic productivity application built with **Java, Spring Boot, MySQL, JPA/Hibernate, HTML, CSS, and JavaScript**.
+
+<p>
+  <a href="https://studysync-production-7698.up.railway.app/">Live Demo</a> •
+  <a href="https://github.com/vasalaajay36/studysync">Source Code</a>
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/MySQL-9.7-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/JPA%20%2F%20Hibernate-ORM-59666C?style=for-the-badge&logo=hibernate&logoColor=white" alt="JPA Hibernate" />
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven" />
+  <img src="https://img.shields.io/badge/Railway-Deployment-000000?style=for-the-badge&logo=railway&logoColor=white" alt="Railway" />
+</p>
+
+</div>
+
+---
 
 ## Live Demo
 
 **Live Application:** https://studysync-production-7698.up.railway.app/
 
 **Source Code:** https://github.com/vasalaajay36/studysync
+
+> The deployed application runs on Railway with the Spring Boot backend and MySQL database hosted in the cloud. Users can access the application from a browser without running the backend locally.
 
 ## Overview
 
@@ -19,8 +49,6 @@ The application provides REST APIs and a browser-based frontend for managing:
 - Tasks
 - Study sessions
 - Student dashboard information
-
-The application is deployed on Railway, with the Spring Boot backend and MySQL database running in the cloud.
 
 ## Features
 
@@ -63,6 +91,10 @@ The application is deployed on Railway, with the Spring Boot backend and MySQL d
 
 - Retrieve dashboard information for a student
 - Aggregate academic/productivity information through a dedicated dashboard API
+
+## Screenshots
+
+> Screenshots can be added here after capturing the deployed application. Recommended screenshots: Dashboard, Task Management, Subject Management, and Study Sessions.
 
 ## Tech Stack
 
@@ -263,7 +295,7 @@ export DB_USERNAME="root"
 export DB_PASSWORD="your_mysql_password"
 ```
 
-The application is configured to use these environment variables, with the local database URL as the default. Do not commit real database passwords to GitHub.
+The application is configured to use these environment variables. Do not commit real database passwords to GitHub.
 
 ### Run the application
 
