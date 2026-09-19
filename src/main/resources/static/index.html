@@ -42,10 +42,10 @@
         <header class="topbar">
             <div class="search-box">
                 <span>⌕</span>
-                <input type="search" placeholder="Search students, tasks, subjects..." aria-label="Search">
+                <input type="search" placeholder="Search students, tasks, subjects..." aria-label="Search StudySync">
             </div>
             <div class="topbar-user">
-                <span class="notification">♧<b></b></span>
+                <span class="notification" aria-label="Notifications">♧<b></b></span>
                 <div class="avatar">A</div>
                 <div class="user-copy"><strong>Ajay</strong><small>Student</small></div>
                 <span>⌄</span>
@@ -72,7 +72,7 @@
                 <div class="hero-card">
                     <div class="hero-copy">
                         <span class="sun">☀</span>
-                        <span>GOOD MORNING, AJAY</span>
+                        <span id="heroGreeting">GOOD MORNING, AJAY</span>
                         <h2>Keep going!</h2>
                         <p>Small steps every day lead to big results.</p>
                         <div class="hero-actions">
@@ -87,7 +87,7 @@
                     <div class="goal-icon">◎</div>
                     <h3>Your Goals Matter</h3>
                     <p>Set your goals, track your progress, make it happen.</p>
-                    <button onclick="document.getElementById('tasks-section').scrollIntoView({behavior:'smooth'})">Set Goals →</button>
+                    <button onclick="document.getElementById('task-form-section').scrollIntoView({behavior:'smooth'})">Set Goals →</button>
                 </div>
             </section>
 
@@ -113,10 +113,10 @@
 
                 <div class="section quick-actions">
                     <div class="section-heading"><div><h2>Quick Actions</h2><p>Jump into your workflow</p></div></div>
-                    <button onclick="document.getElementById('studentId').focus()"><span>♙</span> Manage Student <b>›</b></button>
-                    <button onclick="document.getElementById('taskTitle').focus()"><span>✓</span> Add Task <b>›</b></button>
-                    <button onclick="document.getElementById('subjectName').focus()"><span>▣</span> Add Subject <b>›</b></button>
-                    <button onclick="document.getElementById('sessionTopic').focus()"><span>◫</span> Log Study Session <b>›</b></button>
+                    <button onclick="document.getElementById('student-panel').scrollIntoView({behavior:'smooth'})"><span>♙</span> Manage Student <b>›</b></button>
+                    <button onclick="document.getElementById('taskTitle').focus();document.getElementById('task-form-section').scrollIntoView({behavior:'smooth'})"><span>✓</span> Add Task <b>›</b></button>
+                    <button onclick="document.getElementById('subjectName').focus();document.getElementById('subjects-section').scrollIntoView({behavior:'smooth'})"><span>▣</span> Add Subject <b>›</b></button>
+                    <button onclick="document.getElementById('sessionTopic').focus();document.getElementById('session-form-section').scrollIntoView({behavior:'smooth'})"><span>◫</span> Log Study Session <b>›</b></button>
                 </div>
             </section>
 
@@ -130,7 +130,6 @@
                 </div>
             </section>
 
-            <!-- Subjects -->
             <section class="section" id="subjects-section">
                 <div class="section-heading"><div><h2>Subjects</h2><p>Organize your courses and learning material</p></div><span class="section-badge purple-badge">SUBJECTS</span></div>
                 <form id="subjectForm">
@@ -150,7 +149,6 @@
                 <div id="subjectsList" class="list">Loading...</div>
             </section>
 
-            <!-- Add Task -->
             <section class="section" id="task-form-section">
                 <div class="section-heading"><div><h2>Add Task</h2><p>Create an assignment or deadline to stay on track</p></div></div>
                 <form id="taskForm">
@@ -167,7 +165,6 @@
                 </form>
             </section>
 
-            <!-- Edit Task -->
             <section class="section edit-panel" id="editTaskSection" style="display: none;">
                 <h2>Edit Task</h2>
                 <form id="editTaskForm">
@@ -182,13 +179,11 @@
                 </form>
             </section>
 
-            <!-- Tasks -->
             <section class="section" id="tasks-section">
                 <div class="section-heading"><div><h2>Tasks</h2><p>Keep assignments and deadlines under control</p></div><span class="section-badge green-badge">TASKS</span></div>
                 <div id="tasksList" class="list">Loading...</div>
             </section>
 
-            <!-- Add Study Session -->
             <section class="section" id="session-form-section">
                 <div class="section-heading"><div><h2>Log Study Session</h2><p>Record your focused study time</p></div></div>
                 <form id="sessionForm">
@@ -199,7 +194,6 @@
                 </form>
             </section>
 
-            <!-- Study Sessions -->
             <section class="section" id="sessions-section">
                 <div class="section-heading"><div><h2>Study Sessions</h2><p>Review your recent learning activity</p></div><span class="section-badge orange-badge">SESSIONS</span></div>
                 <div id="sessionsList" class="list">Loading...</div>
