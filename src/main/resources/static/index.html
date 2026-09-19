@@ -6,278 +6,108 @@
     <title>StudySync</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <header>
     <div>
         <div class="logo">StudySync</div>
         <p>Student Productivity & Academic Management</p>
     </div>
 </header>
-
-
 <main>
-
-    <!-- Student -->
     <section class="student-section">
-
-        <label for="studentId">
-            Student ID
-        </label>
-
-        <input
-            type="number"
-            id="studentId"
-            value="1"
-            min="1"
-        >
-
-        <button onclick="loadDashboard()">
-            Load Dashboard
-        </button>
-
+        <label for="studentId">Student ID</label>
+        <input type="number" id="studentId" value="1" min="1">
+        <button onclick="loadDashboard()">Load Dashboard</button>
     </section>
 
-
-    <!-- Dashboard -->
-    <h1 id="welcome">
-        Dashboard
-    </h1>
-
+    <h1 id="welcome">Dashboard</h1>
 
     <section class="dashboard-grid">
-
-        <div class="card">
-            <h3>Subjects</h3>
-            <p id="totalSubjects">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Total Tasks</h3>
-            <p id="totalTasks">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Completed</h3>
-            <p id="completedTasks">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Pending</h3>
-            <p id="pendingTasks">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Study Sessions</h3>
-            <p id="totalSessions">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Study Minutes</h3>
-            <p id="studyMinutes">0</p>
-        </div>
-
+        <div class="card"><h3>Subjects</h3><p id="totalSubjects">0</p></div>
+        <div class="card"><h3>Total Tasks</h3><p id="totalTasks">0</p></div>
+        <div class="card"><h3>Completed</h3><p id="completedTasks">0</p></div>
+        <div class="card"><h3>Pending</h3><p id="pendingTasks">0</p></div>
+        <div class="card"><h3>Study Sessions</h3><p id="totalSessions">0</p></div>
+        <div class="card"><h3>Study Minutes</h3><p id="studyMinutes">0</p></div>
     </section>
-
 
     <!-- Subjects -->
     <section class="section">
-
         <h2>Subjects</h2>
-
-        <div id="subjectsList" class="list">
-            Loading...
+        <form id="subjectForm">
+            <input type="text" id="subjectName" placeholder="Subject name" required>
+            <input type="text" id="subjectDescription" placeholder="Description">
+            <button type="submit">Add Subject</button>
+        </form>
+        <div id="editSubjectSection" style="display: none; margin-top: 20px;">
+            <h3>Edit Subject</h3>
+            <form id="editSubjectForm">
+                <input type="text" id="editSubjectName" placeholder="Subject name" required>
+                <input type="text" id="editSubjectDescription" placeholder="Description">
+                <button type="submit">Save Changes</button>
+                <button type="button" onclick="cancelSubjectEdit()">Cancel</button>
+            </form>
         </div>
-
+        <div id="subjectsList" class="list">Loading...</div>
     </section>
-
 
     <!-- Add Task -->
     <section class="section">
-
         <h2>Add Task</h2>
-
         <form id="taskForm">
-
-            <input
-                type="text"
-                id="taskTitle"
-                placeholder="Task title"
-                required
-            >
-
-            <input
-                type="text"
-                id="taskDescription"
-                placeholder="Description"
-            >
-
-            <input
-                type="date"
-                id="taskDueDate"
-                required
-            >
-
-            <select
-                id="taskPriority"
-                required
-            >
-                <option value="">
-                    Select Priority
-                </option>
-
-                <option value="LOW">
-                    Low
-                </option>
-
-                <option value="MEDIUM">
-                    Medium
-                </option>
-
-                <option value="HIGH">
-                    High
-                </option>
-
+            <input type="text" id="taskTitle" placeholder="Task title" required>
+            <input type="text" id="taskDescription" placeholder="Description">
+            <input type="date" id="taskDueDate" required>
+            <select id="taskPriority" required>
+                <option value="">Select Priority</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
             </select>
-
-            <button type="submit">
-                Add Task
-            </button>
-
+            <button type="submit">Add Task</button>
         </form>
-
     </section>
-
 
     <!-- Edit Task -->
-    <section
-        class="section"
-        id="editTaskSection"
-        style="display: none;"
-    >
-
+    <section class="section" id="editTaskSection" style="display: none;">
         <h2>Edit Task</h2>
-
         <form id="editTaskForm">
-
-            <input
-                type="text"
-                id="editTaskTitle"
-                placeholder="Task title"
-                required
-            >
-
-            <input
-                type="text"
-                id="editTaskDescription"
-                placeholder="Description"
-            >
-
-            <input
-                type="date"
-                id="editTaskDueDate"
-                required
-            >
-
-            <select
-                id="editTaskPriority"
-                required
-            >
-                <option value="LOW">
-                    Low
-                </option>
-
-                <option value="MEDIUM">
-                    Medium
-                </option>
-
-                <option value="HIGH">
-                    High
-                </option>
-
+            <input type="text" id="editTaskTitle" placeholder="Task title" required>
+            <input type="text" id="editTaskDescription" placeholder="Description">
+            <input type="date" id="editTaskDueDate" required>
+            <select id="editTaskPriority" required>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
             </select>
-
-            <button type="submit">
-                Save Changes
-            </button>
-
-            <button
-                type="button"
-                onclick="cancelEdit()"
-            >
-                Cancel
-            </button>
-
+            <button type="submit">Save Changes</button>
+            <button type="button" onclick="cancelEdit()">Cancel</button>
         </form>
-
     </section>
-
 
     <!-- Tasks -->
     <section class="section">
-
         <h2>Tasks</h2>
-
-        <div id="tasksList" class="list">
-            Loading...
-        </div>
-
+        <div id="tasksList" class="list">Loading...</div>
     </section>
-
 
     <!-- Add Study Session -->
     <section class="section">
-
         <h2>Log Study Session</h2>
-
         <form id="sessionForm">
-
-            <input
-                type="text"
-                id="sessionTopic"
-                placeholder="Topic studied"
-                required
-            >
-
-            <input
-                type="date"
-                id="sessionDate"
-                required
-            >
-
-            <input
-                type="number"
-                id="sessionDuration"
-                placeholder="Duration (minutes)"
-                min="1"
-                required
-            >
-
-            <button type="submit">
-                Add Session
-            </button>
-
+            <input type="text" id="sessionTopic" placeholder="Topic studied" required>
+            <input type="date" id="sessionDate" required>
+            <input type="number" id="sessionDuration" placeholder="Duration (minutes)" min="1" required>
+            <button type="submit">Add Session</button>
         </form>
-
     </section>
-
 
     <!-- Study Sessions -->
     <section class="section">
-
         <h2>Study Sessions</h2>
-
-        <div id="sessionsList" class="list">
-            Loading...
-        </div>
-
+        <div id="sessionsList" class="list">Loading...</div>
     </section>
-
 </main>
-
-
 <script src="script.js"></script>
-
 </body>
 </html>
