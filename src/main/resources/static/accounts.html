@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySync — Accounts</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">🎓</div>
+            <div><div class="brand-name">Study<span>Sync</span></div><small>Plan · Learn · Achieve</small></div>
+        </div>
+        <nav class="side-nav">
+            <a href="index.html" class="nav-link"><span>⌂</span> Dashboard</a>
+            <a href="accounts.html" class="nav-link active"><span>♙</span> Accounts</a>
+        </nav>
+        <div class="sidebar-tip">
+            <div class="tip-icon">↗</div>
+            <strong>Student Profiles</strong>
+            <p>Create, edit and switch between the students in your StudySync workspace.</p>
+        </div>
+        <div class="sidebar-decoration">
+            <div>🌱</div><div class="books">▰<br>▰▰</div>
+            <p>Better Students<br>Build a Brighter<br>Future</p>
+        </div>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="search-box account-search">
+                <span>⌕</span><input id="accountSearch" type="search" placeholder="Search students..." aria-label="Search students">
+            </div>
+            <div class="topbar-user" id="topUser" role="button" tabindex="0">
+                <span class="notification" aria-label="Notifications">♧<b></b></span>
+                <div class="avatar" id="topAvatar">A</div>
+                <div class="user-copy"><strong id="topName">Ajay</strong><small>Student</small></div>
+                <span>⌄</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="account-page-header">
+                <div>
+                    <span class="eyebrow">ACCOUNT CENTER</span>
+                    <h1>Student Accounts</h1>
+                    <p class="subtitle">Manage student profiles and choose who you want to work with in StudySync.</p>
+                </div>
+                <a class="back-dashboard" href="index.html">← Back to Dashboard</a>
+            </section>
+
+            <section class="current-account-card" id="currentStudentCard">
+                <div class="current-account-label">CURRENT STUDENT</div>
+                <div class="current-account-content">
+                    <div class="large-account-avatar" id="currentAvatar">A</div>
+                    <div class="current-account-info">
+                        <h2 id="currentName">Loading...</h2>
+                        <p id="currentEmail">Loading...</p>
+                        <span id="currentCourse">Loading...</span>
+                    </div>
+                    <div class="current-account-meta"><small>Student ID</small><strong id="currentId">—</strong></div>
+                </div>
+            </section>
+
+            <section class="section accounts-section">
+                <div class="section-heading account-list-heading">
+                    <div><h2>Your Students</h2><p id="studentCountText">Loading student profiles...</p></div>
+                    <button type="button" id="toggleAddStudent">+ Add Student</button>
+                </div>
+
+                <div id="addStudentPanel" class="add-student-panel" hidden>
+                    <div><h3>Add Student Profile</h3><p>Create a profile that can be used as a StudySync workspace.</p></div>
+                    <form id="studentForm" class="student-form">
+                        <input id="newStudentName" type="text" placeholder="Full name" required>
+                        <input id="newStudentEmail" type="email" placeholder="Email address" required>
+                        <input id="newStudentCourse" type="text" placeholder="Course" required>
+                        <button type="submit">Create Student</button>
+                    </form>
+                </div>
+
+                <div id="editStudentPanel" class="add-student-panel edit-account-panel" hidden>
+                    <div><h3>Edit Student Profile</h3><p>Update this student's information.</p></div>
+                    <form id="editStudentForm" class="student-form">
+                        <input id="editStudentName" type="text" placeholder="Full name" required>
+                        <input id="editStudentEmail" type="email" placeholder="Email address" required>
+                        <input id="editStudentCourse" type="text" placeholder="Course" required>
+                        <button type="submit">Save Changes</button>
+                        <button type="button" class="secondary-btn" id="cancelEdit">Cancel</button>
+                    </form>
+                </div>
+
+                <div id="studentList" class="student-list account-page-list">Loading students...</div>
+            </section>
+        </main>
+        <footer>StudySync · Student Accounts</footer>
+    </div>
+</div>
+
+<script>
+const API = "/api";
+let currentStudentId = Number(localStorage.getItem("studysyncStudentId") || 1);
+let editingId = null;
+const $ = id => document.getElementById(id);
+const esc = value => { const d=document.createElement("div"); d.textContent=value ?? ""; return d.innerHTML; };
+async function request(url, options={}) {
+    const response = await fetch(url, options);
+    if (!response.ok) { let message=`Request failed (${response.status})`; try { const body=await response.json(); message=body.message || message; } catch(_){} throw new Error(message); }
+    if (response.status===204) return null;
+    return response.json();
+}
+function setCurrentStudent(id) { currentStudentId=Number(id); localStorage.setItem("studysyncStudentId", String(id)); }
+function updateCurrent(student) {
+    if (!student) return;
+    setCurrentStudent(student.id);
+    $("currentAvatar").textContent=(student.name || "S").charAt(0).toUpperCase();
+    $("currentName").textContent=student.name || "Student";
+    $("currentEmail").textContent=student.email || "";
+    $("currentCourse").textContent=student.course || "";
+    $("currentId").textContent=`#${student.id}`;
+    $("topAvatar").textContent=(student.name || "S").charAt(0).toUpperCase();
+    $("topName").textContent=student.name || "Student";
+}
+async function loadStudents() {
+    const list=$("studentList");
+    try {
+        const students=await request(`${API}/students`);
+        $("studentCountText").textContent=`${students.length} student${students.length===1?"":"s"} in your workspace`;
+        list.innerHTML="";
+        if (!students.length) { list.innerHTML='<div class="empty-state"><strong>No student profiles yet</strong><br>Add your first student to start using StudySync.</div>'; return; }
+        let active=students.find(s=>Number(s.id)===currentStudentId) || students[0];
+        updateCurrent(active);
+        students.forEach(s=>{
+            const card=document.createElement("div"); card.className=`student-account-card ${Number(s.id)===Number(active.id)?"selected-account":""}`;
+            card.innerHTML=`<div class="student-account-avatar">${esc((s.name||"S").charAt(0).toUpperCase())}</div><div class="student-account-info"><strong>${esc(s.name)}</strong><span>${esc(s.email)}</span><small>${esc(s.course)} · ID ${s.id}</small></div><div class="student-account-actions"><button type="button" data-open="${s.id}">${Number(s.id)===Number(active.id)?"Current":"Open"}</button><button type="button" data-edit="${s.id}">Edit</button><button type="button" class="delete-btn" data-delete="${s.id}">Delete</button></div>`;
+            card.querySelector("[data-open]").onclick=()=>selectStudent(s);
+            card.querySelector("[data-edit]").onclick=()=>openEdit(s);
+            card.querySelector("[data-delete]").onclick=()=>deleteStudent(s);
+            list.appendChild(card);
+        });
+    } catch(error) { list.innerHTML=`<div class="empty-state">Unable to load students: ${esc(error.message)}</div>`; }
+}
+function selectStudent(student) { updateCurrent(student); loadStudents(); }
+function openEdit(student) {
+    editingId=student.id;
+    $("editStudentName").value=student.name||""; $("editStudentEmail").value=student.email||""; $("editStudentCourse").value=student.course||"";
+    $("editStudentPanel").hidden=false; $("editStudentPanel").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function closeEdit() { editingId=null; $("editStudentPanel").hidden=true; $("editStudentForm").reset(); }
+async function deleteStudent(student) {
+    if (!confirm(`Delete ${student.name}? This permanently removes the student profile.`)) return;
+    try { await request(`${API}/students/${student.id}`,{method:"DELETE"}); const remaining=await request(`${API}/students`); if (!remaining.length) { localStorage.removeItem("studysyncStudentId"); } else if (Number(student.id)===currentStudentId) setCurrentStudent(remaining[0].id); await loadStudents(); }
+    catch(error) { alert(`Could not delete student: ${error.message}`); }
+}
+$("toggleAddStudent").onclick=()=>{ const p=$("addStudentPanel"); p.hidden=!p.hidden; if(!p.hidden) $("newStudentName").focus(); };
+$("studentForm").onsubmit=async e=>{ e.preventDefault(); try { const student=await request(`${API}/students`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("newStudentName").value.trim(),email:$("newStudentEmail").value.trim(),course:$("newStudentCourse").value.trim()})}); e.target.reset(); $("addStudentPanel").hidden=true; updateCurrent(student); await loadStudents(); } catch(error){ alert(`Could not create student: ${error.message}`); } };
+$("editStudentForm").onsubmit=async e=>{ e.preventDefault(); if(!editingId)return; try { const student=await request(`${API}/students/${editingId}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("editStudentName").value.trim(),email:$("editStudentEmail").value.trim(),course:$("editStudentCourse").value.trim()})}); closeEdit(); if(Number(student.id)===currentStudentId) updateCurrent(student); await loadStudents(); } catch(error){ alert(`Could not update student: ${error.message}`); } };
+$("cancelEdit").onclick=closeEdit;
+$("accountSearch").oninput=e=>{ const q=e.target.value.toLowerCase().trim(); document.querySelectorAll(".student-account-card").forEach(card=>card.style.display=card.innerText.toLowerCase().includes(q)?"grid":"none"); };
+$("topUser").onclick=()=>location.href="index.html";
+loadStudents();
+</script>
+</body>
+</html>
