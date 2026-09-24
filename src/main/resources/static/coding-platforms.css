@@ -1,0 +1,47 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6fb; color: #17213d; }
+.page { min-height: 100vh; display: flex; }
+.sidebar { width: 240px; min-height: 100vh; background: #101a3a; color: white; padding: 30px 18px; }
+.brand { font-size: 27px; font-weight: 800; margin: 0 0 42px 12px; }
+.brand span { color: #7b61ff; }
+.sidebar nav { display: flex; flex-direction: column; gap: 8px; }
+.sidebar nav a { color: #cfd5e9; text-decoration: none; padding: 14px 16px; border-radius: 12px; font-size: 15px; }
+.sidebar nav a:hover, .sidebar nav a.active { background: #6752e9; color: white; }
+.main { flex: 1; padding: 42px 48px; max-width: 1500px; }
+.header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 30px; }
+.eyebrow { color: #7058ed; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; }
+h1 { margin: 7px 0 0; font-size: 38px; }
+.header p { color: #777f95; margin: 9px 0 0; }
+.primary-button, .ghost-button { border: 0; border-radius: 10px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+.primary-button { background: #6752e9; color: white; }
+.primary-button:hover { background: #5640d1; }
+.ghost-button { background: #f0efff; color: #6752e9; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(180px, 240px)); gap: 16px; margin-bottom: 22px; }
+.stats > div { background: white; border: 1px solid #e7e9f1; border-radius: 16px; padding: 18px; box-shadow: 0 8px 25px rgba(31,42,78,.06); }
+.stats span { display: block; color: #858da2; font-size: 12px; }
+.stats strong { display: block; font-size: 28px; margin-top: 5px; }
+.form-card { background: white; border: 1px solid #e7e9f1; border-radius: 18px; padding: 24px; margin-bottom: 22px; box-shadow: 0 10px 30px rgba(31,42,78,.07); }
+.form-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.form-heading h2 { margin: 7px 0 0; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+label { display: flex; flex-direction: column; gap: 7px; font-weight: 700; font-size: 13px; margin-bottom: 16px; }
+input, select { width: 100%; border: 1px solid #dfe3ed; background: #fafbfe; border-radius: 10px; padding: 12px; font: inherit; outline: none; }
+input:focus, select:focus { border-color: #6752e9; background: white; }
+.muted, .hint { color: #858da2; font-weight: 400; font-size: 12px; }
+.hint { line-height: 1.5; margin: 16px 0 0; }
+.toolbar { margin: 20px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; }
+.platform-card, .empty-platforms { background: white; border: 1px solid #e7e9f1; border-radius: 18px; padding: 22px; box-shadow: 0 9px 28px rgba(31,42,78,.07); }
+.platform-card-header { display: flex; align-items: center; justify-content: space-between; }
+.platform-logo { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg,#6752e9,#927eff); color: white; display: grid; place-items: center; font-weight: 900; }
+.platform-status { background: #e8f7ef; color: #238153; padding: 6px 9px; border-radius: 7px; font-size: 10px; font-weight: 800; }
+.platform-card-body h3 { font-size: 21px; margin: 18px 0 5px; }
+.platform-username { color: #69738b; }
+.platform-card-actions { margin-top: 18px; }
+.platform-button { display: inline-block; text-decoration: none; background: #6752e9; color: white; padding: 10px 14px; border-radius: 9px; font-weight: 700; }
+.empty-platforms { text-align: center; grid-column: 1/-1; padding: 50px 25px; }
+.empty-platforms > div { font-size: 30px; }
+.empty-platforms h3 { margin-bottom: 8px; }
+.empty-platforms p { color: #7d8498; }
+@media (max-width: 800px) { .page { display: block; } .sidebar { width: 100%; min-height: auto; } .main { padding: 25px; } .header { flex-direction: column; align-items: flex-start; } .form-grid { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .stats { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } }
