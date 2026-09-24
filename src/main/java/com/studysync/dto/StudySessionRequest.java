@@ -1,5 +1,6 @@
 package com.studysync.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -7,26 +8,23 @@ import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
 
 public class StudySessionRequest {
-
     @NotBlank
     private String topic;
-
     private String description;
 
     @NotNull
+    @JsonAlias("studyDate")
     private LocalDate date;
 
     @NotNull
     @Positive
     private Integer durationMinutes;
-
     private Boolean completed = false;
 
     @NotNull
     private Long studentId;
 
     public StudySessionRequest() {}
-
     public String getTopic() { return topic; }
     public void setTopic(String topic) { this.topic = topic; }
     public String getDescription() { return description; }
