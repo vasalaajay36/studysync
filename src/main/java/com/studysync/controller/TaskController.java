@@ -3,15 +3,11 @@ package com.studysync.controller;
 import com.studysync.dto.TaskRequest;
 import com.studysync.dto.TaskResponse;
 import com.studysync.service.TaskService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -26,36 +22,50 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> getAllTasks() {
-        return taskService.getAllTasks();
+    public List<TaskResponse> getAllTasks(HttpSession session) {
+        return taskService.getTasksByStudentId(AuthController.authenticatedStudentId(session));
     }
 
     @GetMapping("/{id}")
-    public TaskResponse getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id);
+    public TaskResponse getTaskById(@PathVariable Long id, HttpSession session) {
+        TaskResponse response = taskService.getTaskById(id);
+        requireOwner(response.getStudentId(), session);
+        return response;
     }
 
     @PostMapping
-    public TaskResponse createTask(
-            @Valid @RequestBody TaskRequest request) {
-
+    public TaskResponse createTask(@Valid @RequestBody TaskRequest request,
+                                   HttpSession session) {
+        request.setStudentId(AuthController.authenticatedStudentId(session));
         return taskService.createTask(request);
     }
 
     @PutMapping("/{id}")
-    public TaskResponse updateTask(
-            @PathVariable Long id,
-            @Valid @RequestBody TaskRequest request) {
-
+    public TaskResponse updateTask(@PathVariable Long id,
+                                   @Valid @RequestBody TaskRequest request,
+                                   HttpSession session) {
+        requireOwner(taskService.getTaskById(id).getStudentId(), session);
+        request.setStudentId(AuthController.authenticatedStudentId(session));
         return taskService.updateTask(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTask(@PathVariable Long id, HttpSession session) {
+        requireOwner(taskService.getTaskById(id).getStudentId(), session);
         taskService.deleteTask(id);
     }
+
     @GetMapping("/student/{studentId}")
-    public List<TaskResponse> getTasksByStudentId(@PathVariable Long studentId) {
+    public List<TaskResponse> getTasksByStudentId(@PathVariable Long studentId,
+                                                  HttpSession session) {
+        requireOwner(studentId, session);
         return taskService.getTasksByStudentId(studentId);
+    }
+
+    private void requireOwner(Long ownerId, HttpSession session) {
+        if (!ownerId.equals(AuthController.authenticatedStudentId(session))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access another student's task");
+        }
     }
 }

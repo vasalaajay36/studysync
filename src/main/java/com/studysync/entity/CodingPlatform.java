@@ -1,10 +1,6 @@
 package com.studysync.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "coding_platforms")
@@ -25,8 +21,11 @@ public class CodingPlatform {
     private Integer streak;
     private Long platformRank;
 
-    public CodingPlatform() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
+
+    public CodingPlatform() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,4 +49,6 @@ public class CodingPlatform {
     public void setStreak(Integer streak) { this.streak = streak; }
     public Long getPlatformRank() { return platformRank; }
     public void setPlatformRank(Long platformRank) { this.platformRank = platformRank; }
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
 }
