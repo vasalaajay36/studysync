@@ -1,7 +1,7 @@
 package com.studysync.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.studysync.dto.CodingPlatformRequest;
 import com.studysync.dto.CodingPlatformResponse;
 import com.studysync.entity.CodingPlatform;
@@ -40,7 +40,6 @@ public class CodingPlatformService {
         if (repository.existsByNameIgnoreCase(request.getName().trim())) {
             throw new IllegalArgumentException("Coding platform already exists: " + request.getName());
         }
-
         CodingPlatform platform = new CodingPlatform();
         apply(platform, request);
         return toResponse(repository.save(platform));
@@ -79,9 +78,8 @@ public class CodingPlatformService {
             case "leetcode" -> fetchLeetCode(result, user);
             case "codeforces" -> fetchCodeforces(result, user);
             case "codechef", "hackerrank", "cses", "spoj" -> {
-                // Public statistics are not consistently available through a stable
-                // unauthenticated API for these platforms. Keep unknown values at 0
-                // rather than inventing statistics.
+                // No stable unauthenticated statistics API is used here.
+                // Unknown statistics remain zero instead of being fabricated.
             }
             default -> throw new IllegalArgumentException("Unsupported coding platform: " + name);
         }
@@ -91,17 +89,17 @@ public class CodingPlatformService {
 
     private void fetchLeetCode(CodingPlatform result, String username) {
         String query = "query($username:String!){matchedUser(username:$username){username profile{ranking} submitStatsGlobal{acSubmissionNum{difficulty count}} userContestRanking{attendedContestsCount rating globalRanking}}}";
-        String body;
         try {
-            body = objectMapper.writeValueAsString(java.util.Map.of(
+            String body = objectMapper.writeValueAsString(java.util.Map.of(
                     "query", query,
-                    "variables", java.util.Map.of("username", username)
-            ));
+                    "variables", java.util.Map.of("username", username)));
+
             HttpRequest request = HttpRequest.newBuilder(URI.create(LEETCODE_GRAPHQL))
                     .header("Content-Type", "application/json")
                     .header("User-Agent", "StudySync/1.0")
                     .POST(HttpRequest.BodyPublishers.ofString(body))
                     .build();
+
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new IllegalArgumentException("Unable to fetch LeetCode profile (HTTP " + response.statusCode() + ")");
@@ -138,31 +136,28 @@ public class CodingPlatformService {
 
     private void fetchCodeforces(CodingPlatform result, String username) {
         try {
-            HttpRequest infoRequest = HttpRequest.newBuilder(
-                            URI.create(CODEFORCES_API + java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8)))
+            String encoded = java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8);
+            HttpRequest infoRequest = HttpRequest.newBuilder(URI.create(CODEFORCES_API + encoded))
                     .header("User-Agent", "StudySync/1.0")
-                    .GET()
-                    .build();
+                    .GET().build();
             HttpResponse<String> infoResponse = httpClient.send(infoRequest, HttpResponse.BodyHandlers.ofString());
             if (infoResponse.statusCode() != 200) {
                 throw new IllegalArgumentException("Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")");
             }
 
             JsonNode root = objectMapper.readTree(infoResponse.body());
-            if (!"OK".equals(root.path("status").asText()) || !root.path("result").isArray() || root.path("result").isEmpty()) {
+            if (!"OK".equals(root.path("status").asText()) || !root.path("result").isArray() || root.path("result").size() == 0) {
                 throw new IllegalArgumentException("Codeforces username not found: " + username);
             }
 
             JsonNode user = root.path("result").get(0);
             result.setRating(user.path("rating").asDouble(0));
             result.setHighestRating(user.path("maxRating").asDouble(0));
-            result.setPlatformRank(0L);
 
             HttpRequest ratingRequest = HttpRequest.newBuilder(
-                            URI.create("https://codeforces.com/api/user.rating?handle=" + java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8)))
+                            URI.create("https://codeforces.com/api/user.rating?handle=" + encoded))
                     .header("User-Agent", "StudySync/1.0")
-                    .GET()
-                    .build();
+                    .GET().build();
             HttpResponse<String> ratingResponse = httpClient.send(ratingRequest, HttpResponse.BodyHandlers.ofString());
             if (ratingResponse.statusCode() == 200) {
                 JsonNode ratingRoot = objectMapper.readTree(ratingResponse.body());
@@ -197,8 +192,7 @@ public class CodingPlatformService {
         platform.setName(name);
         platform.setUsername(username);
         platform.setUrl(request.getUrl() == null || request.getUrl().isBlank()
-                ? buildProfileUrl(name, username)
-                : request.getUrl().trim());
+                ? buildProfileUrl(name, username) : request.getUrl().trim());
         platform.setProblemsSolved(request.getProblemsSolved() == null ? 0 : request.getProblemsSolved());
         platform.setRating(request.getRating() == null ? 0D : request.getRating());
         platform.setGlobalRank(request.getGlobalRank() == null ? 0L : request.getGlobalRank());
@@ -209,10 +203,8 @@ public class CodingPlatformService {
     }
 
     private CodingPlatformResponse toResponse(CodingPlatform p) {
-        return new CodingPlatformResponse(
-                p.getId(), p.getName(), p.getUrl(), p.getUsername(),
-                p.getProblemsSolved(), p.getRating(), p.getGlobalRank(),
-                p.getContestsParticipated(), p.getHighestRating(),
-                p.getStreak(), p.getPlatformRank());
+        return new CodingPlatformResponse(p.getId(), p.getName(), p.getUrl(), p.getUsername(),
+                p.getProblemsSolved(), p.getRating(), p.getGlobalRank(), p.getContestsParticipated(),
+                p.getHighestRating(), p.getStreak(), p.getPlatformRank());
     }
 }
