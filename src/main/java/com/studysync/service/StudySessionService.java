@@ -18,103 +18,72 @@ public class StudySessionService {
     private final StudySessionRepository studySessionRepository;
     private final StudentRepository studentRepository;
 
-    public StudySessionService(
-            StudySessionRepository studySessionRepository,
-            StudentRepository studentRepository) {
-
+    public StudySessionService(StudySessionRepository studySessionRepository,
+                               StudentRepository studentRepository) {
         this.studySessionRepository = studySessionRepository;
         this.studentRepository = studentRepository;
     }
 
     public List<StudySessionResponse> getAllSessions() {
-
-        return studySessionRepository.findAll()
-                .stream()
+        return studySessionRepository.findAll().stream()
                 .map(this::convertToResponse)
                 .toList();
     }
 
     public StudySessionResponse createSession(StudySessionRequest request) {
-
-        Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() ->
-                        new StudentNotFoundException(request.getStudentId()));
-
+        Student student = getStudent(request.getStudentId());
         StudySession session = new StudySession();
-
-        session.setTopic(request.getTopic());
-        session.setDate(request.getDate());
-        session.setDurationMinutes(request.getDurationMinutes());
-        session.setStudent(student);
-
-        StudySession savedSession = studySessionRepository.save(session);
-
-        return convertToResponse(savedSession);
+        apply(session, request, student);
+        return convertToResponse(studySessionRepository.save(session));
     }
 
     public StudySessionResponse getSessionById(Long id) {
-
-        StudySession session = studySessionRepository.findById(id)
-                .orElseThrow(() ->
-                        new StudySessionNotFoundException(id));
-
-        return convertToResponse(session);
+        return convertToResponse(studySessionRepository.findById(id)
+                .orElseThrow(() -> new StudySessionNotFoundException(id)));
     }
 
-    public StudySessionResponse updateSession(
-            Long id,
-            StudySessionRequest request) {
-
-        StudySession existingSession =
-                studySessionRepository.findById(id)
-                        .orElseThrow(() ->
-                                new StudySessionNotFoundException(id));
-
-        Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() ->
-                        new StudentNotFoundException(request.getStudentId()));
-
-        existingSession.setTopic(request.getTopic());
-        existingSession.setDate(request.getDate());
-        existingSession.setDurationMinutes(request.getDurationMinutes());
-        existingSession.setStudent(student);
-
-        StudySession updatedSession =
-                studySessionRepository.save(existingSession);
-
-        return convertToResponse(updatedSession);
+    public StudySessionResponse updateSession(Long id, StudySessionRequest request) {
+        StudySession existing = studySessionRepository.findById(id)
+                .orElseThrow(() -> new StudySessionNotFoundException(id));
+        apply(existing, request, getStudent(request.getStudentId()));
+        return convertToResponse(studySessionRepository.save(existing));
     }
 
     public void deleteSession(Long id) {
-
-        StudySession session =
-                studySessionRepository.findById(id)
-                        .orElseThrow(() ->
-                                new StudySessionNotFoundException(id));
-
+        StudySession session = studySessionRepository.findById(id)
+                .orElseThrow(() -> new StudySessionNotFoundException(id));
         studySessionRepository.delete(session);
     }
 
     public List<StudySessionResponse> getSessionsByStudentId(Long studentId) {
-
-        studentRepository.findById(studentId)
-                .orElseThrow(() ->
-                        new StudentNotFoundException(studentId));
-
-        return studySessionRepository.findByStudentId(studentId)
-                .stream()
+        getStudent(studentId);
+        return studySessionRepository.findByStudentId(studentId).stream()
                 .map(this::convertToResponse)
                 .toList();
     }
 
-    private StudySessionResponse convertToResponse(StudySession session) {
+    private Student getStudent(Long studentId) {
+        return studentRepository.findById(studentId)
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
+    }
 
+    private void apply(StudySession session, StudySessionRequest request, Student student) {
+        session.setTopic(request.getTopic());
+        session.setDescription(request.getDescription());
+        session.setDate(request.getDate());
+        session.setDurationMinutes(request.getDurationMinutes());
+        session.setCompleted(request.getCompleted());
+        session.setStudent(student);
+    }
+
+    private StudySessionResponse convertToResponse(StudySession session) {
         return new StudySessionResponse(
                 session.getId(),
                 session.getTopic(),
+                session.getDescription(),
                 session.getDate(),
                 session.getDurationMinutes(),
-                session.getStudent().getId()
-        );
+                session.isCompleted(),
+                session.getStudent().getId());
     }
 }
