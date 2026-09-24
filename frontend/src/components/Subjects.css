@@ -1,0 +1,255 @@
+.subjects-page {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f6fb;
+  color: #18213f;
+}
+
+.subjects-sidebar {
+  width: 240px;
+  background: #121d40;
+  color: white;
+  padding: 28px 18px;
+  box-sizing: border-box;
+}
+
+.subjects-logo {
+  font-size: 27px;
+  font-weight: 800;
+  margin: 0 0 40px 12px;
+}
+
+.subjects-logo span {
+  color: #7357f5;
+}
+
+.subjects-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subjects-nav button {
+  border: none;
+  background: transparent;
+  color: #d9def2;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.subjects-nav button:hover,
+.subjects-nav .active {
+  background: #6752e9;
+  color: white;
+}
+
+.subjects-main {
+  flex: 1;
+  padding: 35px 45px;
+}
+
+.subjects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.subjects-header h1 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.subjects-header p {
+  margin-top: 8px;
+  color: #737a91;
+}
+
+.subjects-header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.add-subject-button,
+.back-button {
+  border: none;
+  color: white;
+  padding: 11px 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-subject-button {
+  background: #6752e9;
+}
+
+.add-subject-button:hover {
+  background: #5843d2;
+}
+
+.back-button {
+  background: #6752e9;
+}
+
+.subject-form {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 5px 20px rgba(30, 40, 80, 0.08);
+  border: 1px solid #e9eaf2;
+}
+
+.subject-form h2 {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea {
+  border: 1px solid #dfe2ec;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #6752e9;
+}
+
+.form-group textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.save-subject-button {
+  border: none;
+  background: #24845b;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.save-subject-button:hover {
+  background: #1d704d;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  );
+  gap: 22px;
+}
+
+.subject-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 5px 20px rgba(30, 40, 80, 0.08);
+  border: 1px solid #e9eaf2;
+}
+
+.subject-card h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.subject-description {
+  color: #70778c;
+  line-height: 1.5;
+  min-height: 45px;
+}
+
+.subject-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-subject-button,
+.delete-subject-button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-subject-button {
+  border: 1px solid #6752e9;
+  background: white;
+  color: #6752e9;
+}
+
+.edit-subject-button:hover {
+  background: #6752e9;
+  color: white;
+}
+
+.delete-subject-button {
+  border: 1px solid #e05260;
+  background: white;
+  color: #d83b4b;
+}
+
+.delete-subject-button:hover {
+  background: #d83b4b;
+  color: white;
+}
+
+.no-subjects {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  color: #737a91;
+}
+
+.loading {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.logout-subject-button {
+  margin-top: 40px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #d9def2;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.logout-subject-button:hover {
+  background: #2a365d;
+}

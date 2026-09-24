@@ -1,0 +1,264 @@
+.study-sessions-page {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f6fb;
+  color: #18213f;
+}
+
+.study-sidebar {
+  width: 240px;
+  background: #121d40;
+  color: white;
+  padding: 28px 18px;
+  box-sizing: border-box;
+}
+
+.study-logo {
+  font-size: 27px;
+  font-weight: 800;
+  margin: 0 0 40px 12px;
+}
+
+.study-logo span {
+  color: #7357f5;
+}
+
+.study-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.study-nav button {
+  border: none;
+  background: transparent;
+  color: #d9def2;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.study-nav button:hover,
+.study-nav .active {
+  background: #6752e9;
+  color: white;
+}
+
+.study-main {
+  flex: 1;
+  padding: 35px 45px;
+}
+
+.study-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.study-header h1 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.study-header p {
+  margin-top: 8px;
+  color: #737a91;
+}
+
+.study-header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.add-session-button,
+.back-study-button {
+  border: none;
+  color: white;
+  padding: 11px 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-session-button {
+  background: #6752e9;
+}
+
+.add-session-button:hover {
+  background: #5843d2;
+}
+
+.back-study-button {
+  background: #6752e9;
+}
+
+.study-form {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 5px 20px rgba(30, 40, 80, 0.08);
+  border: 1px solid #e9eaf2;
+}
+
+.study-form h2 {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea {
+  border: 1px solid #dfe2ec;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #6752e9;
+}
+
+.form-group textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.save-session-button {
+  border: none;
+  background: #24845b;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.save-session-button:hover {
+  background: #1d704d;
+}
+
+.session-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  );
+  gap: 22px;
+}
+
+.session-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 5px 20px rgba(30, 40, 80, 0.08);
+  border: 1px solid #e9eaf2;
+}
+
+.session-card h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.session-description {
+  color: #70778c;
+  line-height: 1.5;
+  min-height: 45px;
+}
+
+.session-details {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.session-pending {
+  color: #d18a00;
+  font-weight: 700;
+}
+
+.session-completed {
+  color: #24845b;
+  font-weight: 700;
+}
+
+.session-status-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+}
+
+.delete-session-button {
+  margin-top: 20px;
+  width: 100%;
+  border: 1px solid #e05260;
+  background: white;
+  color: #d83b4b;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.delete-session-button:hover {
+  background: #d83b4b;
+  color: white;
+}
+
+.no-sessions,
+.study-loading {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.no-sessions {
+  color: #737a91;
+}
+
+.logout-study-button {
+  margin-top: 40px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #d9def2;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.logout-study-button:hover {
+  background: #2a365d;
+}
