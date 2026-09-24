@@ -72,7 +72,7 @@ public class StudySessionService {
         session.setDescription(request.getDescription());
         session.setDate(request.getDate());
         session.setDurationMinutes(request.getDurationMinutes());
-        session.setCompleted(request.getCompleted());
+        session.setCompleted(Boolean.TRUE.equals(request.getCompleted()));
         session.setStudent(student);
     }
 
