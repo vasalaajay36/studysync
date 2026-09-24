@@ -3,7 +3,6 @@ package com.studysync.dto;
 import java.time.LocalDate;
 
 public class StudySessionResponse {
-
     private Long id;
     private String topic;
     private String description;
@@ -14,9 +13,8 @@ public class StudySessionResponse {
 
     public StudySessionResponse() {}
 
-    public StudySessionResponse(Long id, String topic, String description,
-                                LocalDate date, Integer durationMinutes,
-                                boolean completed, Long studentId) {
+    public StudySessionResponse(Long id, String topic, String description, LocalDate date,
+                                Integer durationMinutes, boolean completed, Long studentId) {
         this.id = id;
         this.topic = topic;
         this.description = description;
@@ -34,6 +32,8 @@ public class StudySessionResponse {
     public void setDescription(String description) { this.description = description; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
+    public LocalDate getStudyDate() { return date; }
+    public void setStudyDate(LocalDate studyDate) { this.date = studyDate; }
     public Integer getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
     public boolean isCompleted() { return completed; }
