@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudySync — Coding Platforms</title>
+  <link rel="stylesheet" href="coding-platforms.css">
+</head>
+<body>
+<div class="page">
+  <aside class="sidebar">
+    <div class="brand">Study<span>Sync</span></div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="accounts.html">Accounts</a>
+      <a href="index.html#tasks-section">Tasks</a>
+      <a href="index.html#subjects-section">Subjects</a>
+      <a href="index.html#sessions-section">Study Sessions</a>
+      <a class="active" href="coding-platforms.html">Coding Platforms</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <span class="eyebrow">YOUR CODING JOURNEY</span>
+        <h1>Coding Profiles</h1>
+        <p>Keep your competitive programming profiles and progress in one place.</p>
+      </div>
+      <button class="primary-button" onclick="showAddPlatformForm()">+ Add Profile</button>
+    </header>
+
+    <section class="stats">
+      <div><span>Connected Platforms</span><strong id="platformCount">0</strong></div>
+      <div><span>Profiles</span><strong id="profileCount">0</strong></div>
+    </section>
+
+    <section id="platformForm" class="form-card" style="display:none">
+      <div class="form-heading"><div><span class="eyebrow">PROFILE SETUP</span><h2>Add Coding Profile</h2></div><button class="ghost-button" onclick="hideAddPlatformForm()">Cancel</button></div>
+      <div class="form-grid">
+        <label>Coding Platform
+          <select id="platformName">
+            <option value="">Select a platform</option>
+            <option value="LeetCode">LeetCode</option>
+            <option value="Codeforces">Codeforces</option>
+            <option value="CodeChef">CodeChef</option>
+            <option value="HackerRank">HackerRank</option>
+            <option value="CSES">CSES</option>
+            <option value="SPOJ">SPOJ</option>
+          </select>
+        </label>
+        <label>Username
+          <input id="platformUsername" type="text" placeholder="Enter username">
+        </label>
+      </div>
+      <label>Profile URL <span class="muted">(generated automatically)</span>
+        <input id="platformUrl" type="url" placeholder="Profile URL">
+      </label>
+      <button class="primary-button" onclick="fetchAndAddPlatform()">Fetch Profile & Save</button>
+      <p class="hint">LeetCode and Codeforces statistics are fetched from their public APIs. Other platforms are saved with an automatically generated profile URL; unavailable statistics are left blank rather than fabricated.</p>
+    </section>
+
+    <section class="toolbar">
+      <input id="platformSearch" type="search" placeholder="Search platform or username...">
+    </section>
+    <section id="platformGrid" class="grid"></section>
+  </main>
+</div>
+<script>
+async function fetchAndAddPlatform() {
+  const name = document.getElementById('platformName').value;
+  const username = document.getElementById('platformUsername').value.trim();
+  if (!name || !username) { alert('Select a platform and enter a username.'); return; }
+  try {
+    const response = await fetch(`/api/coding-platforms/fetch?platform=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`, { method: 'POST' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Unable to fetch profile');
+    const saveResponse = await fetch('/api/coding-platforms', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+    });
+    const saved = await saveResponse.json();
+    if (!saveResponse.ok) throw new Error(saved.message || saved.error || 'Unable to save profile');
+    alert(`${saved.name} profile saved successfully.`);
+    document.getElementById('platformName').value = '';
+    document.getElementById('platformUsername').value = '';
+    document.getElementById('platformUrl').value = '';
+    hideAddPlatformForm();
+    loadPlatforms();
+  } catch (error) { alert(error.message); }
+}
+</script>
+<script src="coding-platforms.js"></script>
+</body>
+</html>
