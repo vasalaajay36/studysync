@@ -10,9 +10,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(StudySessionNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleStudySessionNotFound(
-            StudySessionNotFoundException ex) {
-
+    public String handleStudySessionNotFound(StudySessionNotFoundException ex) {
         return ex.getMessage();
     }
 
@@ -31,6 +29,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TaskNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleTaskNotFound(TaskNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(CodingPlatformNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleCodingPlatformNotFound(CodingPlatformNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleBadRequest(IllegalArgumentException ex) {
         return ex.getMessage();
     }
 }
