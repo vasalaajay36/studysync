@@ -5,7 +5,11 @@ import com.studysync.dto.StudentResponse;
 import com.studysync.entity.Student;
 import com.studysync.exception.StudentNotFoundException;
 import com.studysync.repository.StudentRepository;
+import com.studysync.repository.StudySessionRepository;
+import com.studysync.repository.SubjectRepository;
+import com.studysync.repository.TaskRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,84 +17,60 @@ import java.util.List;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final SubjectRepository subjectRepository;
+    private final TaskRepository taskRepository;
+    private final StudySessionRepository studySessionRepository;
 
-    public StudentService(StudentRepository studentRepository) {
+    public StudentService(StudentRepository studentRepository,
+                          SubjectRepository subjectRepository,
+                          TaskRepository taskRepository,
+                          StudySessionRepository studySessionRepository) {
         this.studentRepository = studentRepository;
+        this.subjectRepository = subjectRepository;
+        this.taskRepository = taskRepository;
+        this.studySessionRepository = studySessionRepository;
     }
 
-    // Get all students
     public List<StudentResponse> getAllStudents() {
-
-        return studentRepository.findAll()
-                .stream()
-                .map(student -> new StudentResponse(
-                        student.getId(),
-                        student.getName(),
-                        student.getEmail(),
-                        student.getCourse()
-                ))
+        return studentRepository.findAll().stream()
+                .map(student -> new StudentResponse(student.getId(), student.getName(), student.getEmail(), student.getCourse()))
                 .toList();
     }
 
-    // Create a new student
     public StudentResponse createStudent(StudentRequest request) {
-
         Student student = new Student();
-
         student.setName(request.getName());
         student.setEmail(request.getEmail());
         student.setCourse(request.getCourse());
-
-        Student savedStudent = studentRepository.save(student);
-
-        return new StudentResponse(
-                savedStudent.getId(),
-                savedStudent.getName(),
-                savedStudent.getEmail(),
-                savedStudent.getCourse()
-        );
+        return toResponse(studentRepository.save(student));
     }
 
-    // Get student by ID
     public StudentResponse getStudentById(Long id) {
-
-        Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentNotFoundException(id));
-
-        return new StudentResponse(
-                student.getId(),
-                student.getName(),
-                student.getEmail(),
-                student.getCourse()
-        );
+        return toResponse(studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException(id)));
     }
 
-    // Update student
     public StudentResponse updateStudent(Long id, StudentRequest request) {
-
-        Student existingStudent = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentNotFoundException(id));
-
-        existingStudent.setName(request.getName());
-        existingStudent.setEmail(request.getEmail());
-        existingStudent.setCourse(request.getCourse());
-
-        Student updatedStudent = studentRepository.save(existingStudent);
-
-        return new StudentResponse(
-                updatedStudent.getId(),
-                updatedStudent.getName(),
-                updatedStudent.getEmail(),
-                updatedStudent.getCourse()
-        );
-    }
-
-    // Delete student
-    public void deleteStudent(Long id) {
-
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new StudentNotFoundException(id));
+        student.setName(request.getName());
+        student.setEmail(request.getEmail());
+        student.setCourse(request.getCourse());
+        return toResponse(studentRepository.save(student));
+    }
 
-        studentRepository.delete(student);
+    @Transactional
+    public void deleteStudent(Long id) {
+        studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException(id));
+
+        studySessionRepository.deleteByStudentId(id);
+        taskRepository.deleteByStudentId(id);
+        subjectRepository.deleteByStudentId(id);
+        studentRepository.deleteById(id);
+    }
+
+    private StudentResponse toResponse(Student student) {
+        return new StudentResponse(student.getId(), student.getName(), student.getEmail(), student.getCourse());
     }
 }
