@@ -5,6 +5,29 @@ import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
 
+// Keep the server-side JSESSIONID attached to every Spring Boot API request.
+// The backend scopes tasks, subjects, sessions and coding profiles to the
+// authenticated student, so all React screens must send the session cookie.
+const nativeFetch = window.fetch.bind(window);
+
+window.fetch = (input, init = {}) => {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof Request
+      ? input.url
+      : "";
+
+  if (url.startsWith("http://localhost:8080/api/")) {
+    return nativeFetch(input, {
+      ...init,
+      credentials: "include",
+    });
+  }
+
+  return nativeFetch(input, init);
+};
+
 function App() {
   const path = window.location.pathname;
 
