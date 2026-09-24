@@ -13,13 +13,14 @@ public class CodingPlatformResponse {
     private Double highestRating;
     private Integer streak;
     private Long platformRank;
+    private Long studentId;
 
     public CodingPlatformResponse() {}
 
     public CodingPlatformResponse(Long id, String name, String url, String username,
                                   Integer problemsSolved, Double rating, Long globalRank,
                                   Integer contestsParticipated, Double highestRating,
-                                  Integer streak, Long platformRank) {
+                                  Integer streak, Long platformRank, Long studentId) {
         this.id = id;
         this.name = name;
         this.url = url;
@@ -31,6 +32,7 @@ public class CodingPlatformResponse {
         this.highestRating = highestRating;
         this.streak = streak;
         this.platformRank = platformRank;
+        this.studentId = studentId;
     }
 
     public Long getId() { return id; }
@@ -55,4 +57,6 @@ public class CodingPlatformResponse {
     public void setStreak(Integer streak) { this.streak = streak; }
     public Long getPlatformRank() { return platformRank; }
     public void setPlatformRank(Long platformRank) { this.platformRank = platformRank; }
+    public Long getStudentId() { return studentId; }
+    public void setStudentId(Long studentId) { this.studentId = studentId; }
 }
