@@ -20,8 +20,7 @@ public class StudySessionRequest {
     @Positive
     private Integer durationMinutes;
 
-    @NotNull
-    private Boolean completed;
+    private Boolean completed = false;
 
     @NotNull
     private Long studentId;
