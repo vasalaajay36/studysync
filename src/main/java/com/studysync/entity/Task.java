@@ -23,6 +23,7 @@ public class Task {
     private LocalDate dueDate;
     private String priority;
     private boolean completed;
+    private String platform;
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
@@ -78,6 +79,10 @@ public class Task {
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
+
+    public String getPlatform() { return platform; }
+
+    public void setPlatform(String platform) { this.platform = platform; }
 
     public Student getStudent() {
         return student;

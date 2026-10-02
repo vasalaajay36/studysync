@@ -10,4 +10,5 @@ public interface CodingPlatformRepository extends JpaRepository<CodingPlatform, 
     boolean existsByNameIgnoreCaseAndStudentId(String name, Long studentId);
     List<CodingPlatform> findByStudentId(Long studentId);
     Optional<CodingPlatform> findByIdAndStudentId(Long id, Long studentId);
+    void deleteByStudentId(Long studentId);
 }

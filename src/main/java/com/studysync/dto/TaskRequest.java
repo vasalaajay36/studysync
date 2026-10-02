@@ -21,6 +21,8 @@ public class TaskRequest {
     @NotNull
     private Boolean completed;
 
+    private String platform;
+
     @NotNull
     private Long studentId;
 
@@ -66,6 +68,10 @@ public class TaskRequest {
     public void setCompleted(Boolean completed) {
         this.completed = completed;
     }
+
+    public String getPlatform() { return platform; }
+
+    public void setPlatform(String platform) { this.platform = platform; }
 
     public Long getStudentId() {
         return studentId;

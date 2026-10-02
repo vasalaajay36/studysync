@@ -41,25 +41,25 @@ function Dashboard() {
         studySessionsResponse,
         codingPlatformsResponse,
       ] = await Promise.all([
-        fetch(`http://localhost:8080/api/dashboard/${studentId}`, {
+        fetch(`/api/dashboard/${studentId}`, {
           credentials: "include",
         }),
 
         fetch(
-          `http://localhost:8080/api/tasks/student/${studentId}`,
+          `/api/tasks/student/${studentId}`,
           {
             credentials: "include",
           }
         ),
 
         fetch(
-          `http://localhost:8080/api/study-sessions/student/${studentId}`,
+          `/api/study-sessions/student/${studentId}`,
           {
             credentials: "include",
           }
         ),
 
-        fetch("http://localhost:8080/api/coding-platforms", {
+        fetch("/api/coding-platforms", {
           credentials: "include",
         }),
       ]);
@@ -169,9 +169,15 @@ function Dashboard() {
     window.location.href = "/coding-platforms";
   };
 
-  const logout = () => {
-    localStorage.removeItem("student");
-    window.location.href = "/";
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      localStorage.removeItem("student");
+      window.location.assign("/");
+    }
   };
 
   const formatMinutes = (minutes) => {

@@ -44,7 +44,8 @@ public class TaskService {
         task.setDescription(request.getDescription());
         task.setDueDate(request.getDueDate());
         task.setPriority(request.getPriority());
-        task.setCompleted(request.getCompleted());
+        task.setCompleted(Boolean.TRUE.equals(request.getCompleted()));
+        task.setPlatform(request.getPlatform());
         task.setStudent(student);
 
         Task savedTask = taskRepository.save(task);
@@ -73,7 +74,8 @@ public class TaskService {
         existingTask.setDescription(request.getDescription());
         existingTask.setDueDate(request.getDueDate());
         existingTask.setPriority(request.getPriority());
-        existingTask.setCompleted(request.getCompleted());
+        existingTask.setCompleted(Boolean.TRUE.equals(request.getCompleted()));
+        existingTask.setPlatform(request.getPlatform());
         existingTask.setStudent(student);
 
         Task updatedTask = taskRepository.save(existingTask);
@@ -110,6 +112,7 @@ public class TaskService {
                 task.getDueDate(),
                 task.getPriority(),
                 task.isCompleted(),
+                task.getPlatform(),
                 task.getStudent().getId()
         );
     }

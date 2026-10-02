@@ -10,6 +10,7 @@ public class TaskResponse {
     private LocalDate dueDate;
     private String priority;
     private boolean completed;
+    private String platform;
     private Long studentId;
 
     public TaskResponse() {
@@ -22,6 +23,7 @@ public class TaskResponse {
             LocalDate dueDate,
             String priority,
             boolean completed,
+            String platform,
             Long studentId) {
 
         this.id = id;
@@ -30,6 +32,7 @@ public class TaskResponse {
         this.dueDate = dueDate;
         this.priority = priority;
         this.completed = completed;
+        this.platform = platform;
         this.studentId = studentId;
     }
 
@@ -80,6 +83,10 @@ public class TaskResponse {
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
+
+    public String getPlatform() { return platform; }
+
+    public void setPlatform(String platform) { this.platform = platform; }
 
     public Long getStudentId() {
         return studentId;
