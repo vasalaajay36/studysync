@@ -4,7 +4,7 @@
 
 ### Student Productivity & Academic Management Platform
 
-A full-stack academic productivity application built with **Java, Spring Boot, MySQL, JPA/Hibernate, HTML, CSS, and JavaScript**.
+A full-stack academic productivity application built with **React, Java, Spring Boot, MySQL, JPA/Hibernate, HTML, CSS, and JavaScript**.
 
 <p>
   <a href="https://studysync-production-7698.up.railway.app/">Live Demo</a> •
@@ -52,13 +52,14 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 ## Features
 
-### Student Management
+### Authentication and Student Accounts
 
-- Create a student
-- View all students
-- View a student by ID
-- Update student information
-- Delete a student
+- Register with name, email, course, and password
+- Sign in with email and password
+- Passwords are stored as BCrypt hashes
+- Server-side sessions scope student data to the authenticated account
+- View and update your own student information
+- Delete your own account and associated academic data
 
 ### Subject Management
 
@@ -115,6 +116,8 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 ### Frontend
 
+- React 19
+- Vite
 - HTML5
 - CSS3
 - JavaScript
@@ -206,6 +209,17 @@ src/main/resources/
 
 ## REST API
 
+### Authentication
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/auth/register` | Create an account and sign in |
+| POST | `/api/auth/login` | Sign in with email and password |
+| GET | `/api/auth/me` | Return the authenticated student |
+| POST | `/api/auth/logout` | Invalidate the current session |
+
+All task, subject, study-session, dashboard, and coding-profile APIs require a valid login session. Data ownership is determined by the authenticated server-side session, not by a client-supplied student ID.
+
 Base URL for the deployed application:
 
 ```text
@@ -222,7 +236,7 @@ https://studysync-production-7698.up.railway.app
 | PUT | `/api/students/{id}` | Update student |
 | DELETE | `/api/students/{id}` | Delete student |
 
-### Subjects
+### Subjects (login required)
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -233,7 +247,7 @@ https://studysync-production-7698.up.railway.app
 | DELETE | `/api/subjects/{id}` | Delete subject |
 | GET | `/api/subjects/student/{studentId}` | Get subjects for a student |
 
-### Tasks
+### Tasks (login required)
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -244,7 +258,7 @@ https://studysync-production-7698.up.railway.app
 | DELETE | `/api/tasks/{id}` | Delete task |
 | GET | `/api/tasks/student/{studentId}` | Get tasks for a student |
 
-### Study Sessions
+### Study Sessions (login required)
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -295,7 +309,7 @@ export DB_USERNAME="root"
 export DB_PASSWORD="your_mysql_password"
 ```
 
-The application is configured to use these environment variables. Do not commit real database passwords to GitHub.
+The application is configured to use these environment variables. Do not commit real database passwords to GitHub. The Maven build downloads a compatible Node.js runtime, builds the React frontend, and packages it into the Spring Boot static resources.
 
 ### Run the application
 
@@ -319,10 +333,10 @@ http://localhost:8080
 
 ## Build
 
-To verify the project compiles successfully:
+The Maven build installs frontend dependencies, builds React, and then compiles/tests the Spring Boot backend. To verify the full application:
 
 ```bash
-mvn clean compile
+./mvnw clean test
 ```
 
 ## API Testing with Postman
