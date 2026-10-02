@@ -5,51 +5,31 @@ import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
 
-// Keep the server-side JSESSIONID attached to every Spring Boot API request.
-// The backend scopes tasks, subjects, sessions and coding profiles to the
-// authenticated student, so all React screens must send the session cookie.
+// Keep the server-side session cookie attached to every same-origin API request.
+// The Vite proxy sends /api requests to Spring Boot during local development.
 const nativeFetch = window.fetch.bind(window);
-
 window.fetch = (input, init = {}) => {
-  const url =
-    typeof input === "string"
-      ? input
-      : input instanceof Request
-      ? input.url
-      : "";
-
-  if (url.startsWith("http://localhost:8080/api/")) {
-    return nativeFetch(input, {
-      ...init,
-      credentials: "include",
-    });
+  const requestUrl = input instanceof Request ? input.url : String(input);
+  let isApiRequest = false;
+  try {
+    isApiRequest = new URL(requestUrl, window.location.origin).pathname.startsWith("/api/");
+  } catch {
+    // Let fetch report malformed URLs normally.
   }
 
-  return nativeFetch(input, init);
+  return nativeFetch(input, isApiRequest
+    ? { ...init, credentials: "include" }
+    : init);
 };
 
 function App() {
   const path = window.location.pathname;
 
-  if (path === "/dashboard") {
-    return <Dashboard />;
-  }
-
-  if (path === "/tasks") {
-    return <Tasks />;
-  }
-
-  if (path === "/subjects") {
-    return <Subjects />;
-  }
-
-  if (path === "/study-sessions") {
-    return <StudySessions />;
-  }
-
-  if (path === "/coding-platforms") {
-    return <CodingPlatforms />;
-  }
+  if (path === "/dashboard") return <Dashboard />;
+  if (path === "/tasks") return <Tasks />;
+  if (path === "/subjects") return <Subjects />;
+  if (path === "/study-sessions") return <StudySessions />;
+  if (path === "/coding-platforms") return <CodingPlatforms />;
 
   return <Login />;
 }
