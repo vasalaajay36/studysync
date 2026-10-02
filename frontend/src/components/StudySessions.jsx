@@ -184,9 +184,8 @@ function StudySessions() {
     window.location.href = "/tasks";
   };
 
-  const goToSubjects = () => {
-    window.location.href = "/subjects";
-  };
+  const goToSubjects = () => { window.location.href = "/subjects"; };
+  const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
 
   const logout = async () => {
     try {
@@ -230,7 +229,7 @@ function StudySessions() {
             Study Sessions
           </button>
 
-          <button>
+          <button onClick={goToCodingPlatforms}>
             Coding Platforms
           </button>
 
