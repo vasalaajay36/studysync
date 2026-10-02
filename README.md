@@ -226,15 +226,16 @@ Base URL for the deployed application:
 https://studysync-production-7698.up.railway.app
 ```
 
-### Students
+### Students (login required)
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/students` | Get all students |
-| GET | `/api/students/{id}` | Get student by ID |
-| POST | `/api/students` | Create student |
-| PUT | `/api/students/{id}` | Update student |
-| DELETE | `/api/students/{id}` | Delete student |
+| GET | `/api/students` | Get the current student's profile |
+| GET | `/api/students/{id}` | Get your own profile by ID |
+| PUT | `/api/students/{id}` | Update your own profile |
+| DELETE | `/api/students/{id}` | Delete your own account and related data |
+
+Account creation is handled by `POST /api/auth/register`; the legacy `POST /api/students` route returns `405 Method Not Allowed` so accounts cannot be created without password authentication.
 
 ### Subjects (login required)
 
