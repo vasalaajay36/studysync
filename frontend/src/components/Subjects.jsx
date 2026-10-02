@@ -26,7 +26,7 @@ function Subjects() {
 
   const loadSubjects = () => {
     fetch(
-      `http://localhost:8080/api/subjects/student/${student.id}`
+      `/api/subjects/student/${student.id}`
     )
       .then((response) => {
         if (!response.ok) {
@@ -64,8 +64,8 @@ function Subjects() {
     };
 
     const url = editingSubjectId
-      ? `http://localhost:8080/api/subjects/${editingSubjectId}`
-      : "http://localhost:8080/api/subjects";
+      ? `/api/subjects/${editingSubjectId}`
+      : "/api/subjects";
 
     const method = editingSubjectId ? "PUT" : "POST";
 
@@ -149,7 +149,7 @@ function Subjects() {
     }
 
     fetch(
-      `http://localhost:8080/api/subjects/${subjectId}`,
+      `/api/subjects/${subjectId}`,
       {
         method: "DELETE",
       }
