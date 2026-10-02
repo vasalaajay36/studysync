@@ -30,7 +30,7 @@ function Tasks() {
 
   const loadTasks = () => {
     fetch(
-      `http://localhost:8080/api/tasks/student/${student.id}`
+      `/api/tasks/student/${student.id}`
     )
       .then((response) => {
         if (!response.ok) {
@@ -81,8 +81,8 @@ function Tasks() {
     };
 
     const url = editingTask
-      ? `http://localhost:8080/api/tasks/${editingTask.id}`
-      : "http://localhost:8080/api/tasks";
+      ? `/api/tasks/${editingTask.id}`
+      : "/api/tasks";
 
     const method = editingTask ? "PUT" : "POST";
 
@@ -157,7 +157,7 @@ function Tasks() {
     };
 
     fetch(
-      `http://localhost:8080/api/tasks/${task.id}`,
+      `/api/tasks/${task.id}`,
       {
         method: "PUT",
         headers: {
@@ -198,7 +198,7 @@ function Tasks() {
     }
 
     fetch(
-      `http://localhost:8080/api/tasks/${taskId}`,
+      `/api/tasks/${taskId}`,
       {
         method: "DELETE",
       }
