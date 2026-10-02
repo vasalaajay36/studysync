@@ -27,7 +27,7 @@ function StudySessions() {
 
   const loadSessions = () => {
     fetch(
-      `http://localhost:8080/api/study-sessions/student/${student.id}`
+      `/api/study-sessions/student/${student.id}`
     )
       .then((response) => {
         if (!response.ok) {
@@ -67,7 +67,7 @@ function StudySessions() {
       studentId: student.id,
     };
 
-    fetch("http://localhost:8080/api/study-sessions", {
+    fetch("/api/study-sessions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,7 +113,7 @@ function StudySessions() {
     };
 
     fetch(
-      `http://localhost:8080/api/study-sessions/${session.id}`,
+      `/api/study-sessions/${session.id}`,
       {
         method: "PUT",
         headers: {
@@ -154,7 +154,7 @@ function StudySessions() {
     }
 
     fetch(
-      `http://localhost:8080/api/study-sessions/${sessionId}`,
+      `/api/study-sessions/${sessionId}`,
       {
         method: "DELETE",
       }
