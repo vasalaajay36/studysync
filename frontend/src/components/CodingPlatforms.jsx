@@ -86,7 +86,7 @@ function CodingPlatforms() {
   const loadPlatforms = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/coding-platforms",
+        "/api/coding-platforms",
         {
           credentials: "include",
         }
@@ -196,7 +196,7 @@ function CodingPlatforms() {
       });
 
       const response = await fetch(
-        `http://localhost:8080/api/coding-platforms/fetch?${params}`,
+        `/api/coding-platforms/fetch?${params}`,
         {
           method: "POST",
           credentials: "include",
@@ -254,8 +254,8 @@ function CodingPlatforms() {
     }
 
     const url = editingId
-      ? `http://localhost:8080/api/coding-platforms/${editingId}`
-      : "http://localhost:8080/api/coding-platforms";
+      ? `/api/coding-platforms/${editingId}`
+      : "/api/coding-platforms";
 
     const method = editingId ? "PUT" : "POST";
 
@@ -390,7 +390,7 @@ function CodingPlatforms() {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/coding-platforms/${id}`,
+        `/api/coding-platforms/${id}`,
         {
           method: "DELETE",
           credentials: "include",
