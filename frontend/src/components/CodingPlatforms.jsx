@@ -445,9 +445,15 @@ function CodingPlatforms() {
     window.location.href = path;
   };
 
-  const logout = () => {
-    localStorage.removeItem("student");
-    window.location.href = "/";
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      localStorage.removeItem("student");
+      window.location.assign("/");
+    }
   };
 
   const availablePlatforms =
