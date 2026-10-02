@@ -218,9 +218,10 @@ function Tasks() {
       });
   };
 
-  const goToDashboard = () => {
-    window.location.href = "/dashboard";
-  };
+  const goToDashboard = () => { window.location.href = "/dashboard"; };
+  const goToSubjects = () => { window.location.href = "/subjects"; };
+  const goToStudySessions = () => { window.location.href = "/study-sessions"; };
+  const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
 
   const logout = async () => {
     try {
@@ -256,15 +257,15 @@ function Tasks() {
             Tasks
           </button>
 
-          <button>
+          <button onClick={goToSubjects}>
             Subjects
           </button>
 
-          <button>
+          <button onClick={goToStudySessions}>
             Study Sessions
           </button>
 
-          <button>
+          <button onClick={goToCodingPlatforms}>
             Coding Platforms
           </button>
 
