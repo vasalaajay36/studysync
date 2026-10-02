@@ -16,7 +16,7 @@ const PLATFORM_OPTIONS = [
     profileUrl: "https://codeforces.com/profile/",
     icon: "CF",
     description: "Competitive Programming",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "CodeChef",
@@ -65,6 +65,16 @@ const EMPTY_FORM = {
   platformRank: 0,
 };
 
+async function readApiResponse(response) {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
+
 function CodingPlatforms() {
   const [platforms, setPlatforms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,15 +102,19 @@ function CodingPlatforms() {
         }
       );
 
+      const data = await readApiResponse(response);
       if (!response.ok) {
-        throw new Error("Unable to load coding platforms");
+        throw new Error(
+          response.status === 401
+            ? "Your session has expired. Please sign in again."
+            : data?.detail || data?.message || `Unable to load coding profiles (HTTP ${response.status}).`
+        );
       }
 
-      const data = await response.json();
-      setPlatforms(data);
+      setPlatforms(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Coding platform loading error:", error);
-      setErrorMessage("Unable to load coding profiles.");
+      setErrorMessage(error.message || "Unable to load coding profiles.");
     } finally {
       setLoading(false);
     }
@@ -181,7 +195,7 @@ function CodingPlatforms() {
 
     if (!selectedPlatform?.automatic) {
       setErrorMessage(
-        "Automatic statistics fetching is currently available for LeetCode only."
+        "Automatic statistics fetching is available for LeetCode and Codeforces. Other platforms can be saved with their profile URL and stats entered manually."
       );
       return;
     }
@@ -203,13 +217,13 @@ function CodingPlatforms() {
         }
       );
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            data.error ||
-            "Unable to fetch profile"
+          response.status === 401
+            ? "Your session has expired. Please sign in again."
+            : data?.detail || data?.message || data?.error || `Unable to fetch profile (HTTP ${response.status}).`
         );
       }
 
@@ -296,13 +310,13 @@ function CodingPlatforms() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            data.error ||
-            "Unable to save coding platform"
+          response.status === 401
+            ? "Your session has expired. Please sign in again."
+            : data?.detail || data?.message || data?.error || `Unable to save coding platform (HTTP ${response.status}).`
         );
       }
 
