@@ -30,7 +30,16 @@ function Login() {
         body: JSON.stringify(body),
       });
 
-      const data = response.status === 204 ? null : await response.json();
+      const responseText = response.status === 204 ? "" : await response.text();
+      let data = null;
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          // Spring may return a plain-text CORS/error response instead of JSON.
+          data = { message: responseText };
+        }
+      }
       if (!response.ok) {
         throw new Error(data?.detail || data?.message || "Unable to authenticate. Please check your details.");
       }
