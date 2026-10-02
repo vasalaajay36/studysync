@@ -5,6 +5,7 @@ import com.studysync.dto.StudentResponse;
 import com.studysync.entity.Student;
 import com.studysync.exception.StudentNotFoundException;
 import com.studysync.repository.StudentRepository;
+import com.studysync.repository.CodingPlatformRepository;
 import com.studysync.repository.StudySessionRepository;
 import com.studysync.repository.SubjectRepository;
 import com.studysync.repository.TaskRepository;
@@ -17,15 +18,18 @@ import java.util.List;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final CodingPlatformRepository codingPlatformRepository;
     private final SubjectRepository subjectRepository;
     private final TaskRepository taskRepository;
     private final StudySessionRepository studySessionRepository;
 
     public StudentService(StudentRepository studentRepository,
+                          CodingPlatformRepository codingPlatformRepository,
                           SubjectRepository subjectRepository,
                           TaskRepository taskRepository,
                           StudySessionRepository studySessionRepository) {
         this.studentRepository = studentRepository;
+        this.codingPlatformRepository = codingPlatformRepository;
         this.subjectRepository = subjectRepository;
         this.taskRepository = taskRepository;
         this.studySessionRepository = studySessionRepository;
@@ -65,6 +69,7 @@ public class StudentService {
                 .orElseThrow(() -> new StudentNotFoundException(id));
 
         studySessionRepository.deleteByStudentId(id);
+        codingPlatformRepository.deleteByStudentId(id);
         taskRepository.deleteByStudentId(id);
         subjectRepository.deleteByStudentId(id);
         studentRepository.deleteById(id);
