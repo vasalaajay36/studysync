@@ -274,6 +274,15 @@ public class CodingPlatformService {
                   }
                 }
               }
+              userContestRanking(username: $username) {
+                attendedContestsCount
+                rating
+                globalRanking
+              }
+              userContestRankingHistory(username: $username) {
+                attended
+                rating
+              }
             }
             """;
 
