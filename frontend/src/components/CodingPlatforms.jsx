@@ -234,7 +234,7 @@ function CodingPlatforms() {
         username:
           data.username || previous.username,
         problemsSolved: data.problemsSolved || 0,
-        rating: data.rating || 0,
+        rating: data.rating == null ? 0 : Number(data.rating.toFixed ? data.rating.toFixed(2) : Number(data.rating)),
         globalRank: data.globalRank || 0,
         contestsParticipated:
           data.contestsParticipated || 0,
@@ -840,7 +840,9 @@ function CodingPlatforms() {
                   <div>
                     <span>Rating</span>
                     <strong>
-                      {formData.rating || "—"}
+                      {formData.rating
+                        ? Number(formData.rating).toFixed(2)
+                        : "—"}
                     </strong>
                   </div>
 
@@ -984,7 +986,9 @@ function CodingPlatforms() {
                       <span>Rating</span>
 
                       <strong>
-                        {platform.rating || "—"}
+                        {platform.rating
+                        ? Number(platform.rating).toFixed(2)
+                        : "—"}
                       </strong>
                     </div>
 
