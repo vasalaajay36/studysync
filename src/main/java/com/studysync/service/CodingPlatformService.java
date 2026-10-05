@@ -17,6 +17,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -101,74 +103,187 @@ public class CodingPlatformService {
 
     private void fetchLeetCode(CodingPlatform result, String username) {
         /*
-         * LeetCode's public GraphQL endpoint is not a stable public API and can
-         * reject server-side requests with HTTP 400. Use the maintained REST
-         * adapter for public profile statistics instead.
+         * Use LeetCode's public GraphQL endpoint directly. This avoids depending
+         * on a third-party proxy that can cold-start or rate-limit Railway.
+         * The request mirrors the public query structure used by maintained
+         * LeetCode API adapters and sends the required LeetCode Referer header.
          */
         try {
-            JsonNode profile = getLeetCodeJson(username, "");
-            JsonNode solved = getLeetCodeJson(username, "/solved");
-            JsonNode contest = getLeetCodeJson(username, "/contest");
-            JsonNode calendar = getLeetCodeJson(username, "/calendar");
+            JsonNode profileData = fetchLeetCodeGraphQL(LEETCODE_PROFILE_QUERY, username);
+            JsonNode contestData = fetchLeetCodeGraphQL(LEETCODE_CONTEST_QUERY, username);
 
-            if (profile.has("error")) {
+            JsonNode matchedUser = profileData.path("matchedUser");
+            if (matchedUser.isMissingNode() || matchedUser.isNull()) {
                 throw new IllegalArgumentException("LeetCode username not found: " + username);
             }
 
-            result.setUsername(profile.path("username").asText(username));
-            result.setGlobalRank(profile.path("ranking").asLong(0));
+            result.setUsername(username);
+            result.setGlobalRank(matchedUser.path("profile").path("ranking").asLong(0));
 
-            result.setProblemsSolved(solved.path("solvedProblem").asInt(0));
-            result.setContestsParticipated(contest.path("contestAttend").asInt(0));
-            result.setRating(roundToTwoDecimals(contest.path("contestRating").asDouble(0)));
-            result.setPlatformRank(contest.path("contestGlobalRanking").asLong(0));
-            result.setStreak(calendar.path("streak").asInt(0));
+            int solved = 0;
+            JsonNode solvedStats = matchedUser.path("submitStats").path("acSubmissionNum");
+            if (solvedStats.isArray()) {
+                for (JsonNode stat : solvedStats) {
+                    String difficulty = stat.path("difficulty").asText("");
+                    if ("Easy".equalsIgnoreCase(difficulty)
+                            || "Medium".equalsIgnoreCase(difficulty)
+                            || "Hard".equalsIgnoreCase(difficulty)) {
+                        solved += stat.path("count").asInt(0);
+                    }
+                }
+            }
+            result.setProblemsSolved(solved);
 
-            result.setUrl(buildProfileUrl("leetcode", result.getUsername()));
+            JsonNode contest = contestData.path("userContestRanking");
+            if (!contest.isMissingNode() && !contest.isNull()) {
+                result.setContestsParticipated(
+                        contest.path("attendedContestsCount").asInt(0)
+                );
+                result.setRating(
+                        roundToTwoDecimals(contest.path("rating").asDouble(0))
+                );
+                result.setPlatformRank(
+                        contest.path("globalRanking").asLong(0)
+                );
+            }
+
+            int highestRating = 0;
+            JsonNode history = contestData.path("userContestRankingHistory");
+            if (history.isArray()) {
+                for (JsonNode entry : history) {
+                    if (entry.path("attended").asBoolean(false)) {
+                        highestRating = Math.max(
+                                highestRating,
+                                entry.path("rating").asInt(0)
+                        );
+                    }
+                }
+            }
+            result.setHighestRating((double) highestRating);
+
+            result.setStreak(
+                    calculateLeetCodeStreak(
+                            matchedUser.path("submissionCalendar").asText("")
+                    )
+            );
+            result.setUrl(buildProfileUrl("leetcode", username));
+        } catch (HttpTimeoutException ex) {
+            throw new IllegalArgumentException(
+                    "LeetCode profile service timed out. Please try again."
+            );
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new IllegalArgumentException("LeetCode profile request was interrupted");
+            throw new IllegalArgumentException(
+                    "LeetCode profile request was interrupted"
+            );
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Unable to read LeetCode profile data");
+            throw new IllegalArgumentException(
+                    "Unable to read LeetCode profile data. Please try again."
+            );
         }
     }
 
-    private JsonNode getLeetCodeJson(String username, String suffix)
+    private JsonNode fetchLeetCodeGraphQL(String query, String username)
             throws IOException, InterruptedException {
-        String encoded = java.net.URLEncoder.encode(
-                username,
-                java.nio.charset.StandardCharsets.UTF_8
+        String body = objectMapper.writeValueAsString(
+                java.util.Map.of(
+                        "query", query,
+                        "variables", java.util.Map.of("username", username)
+                )
         );
 
         HttpRequest request = HttpRequest.newBuilder(
-                URI.create("https://alfa-leetcode-api.onrender.com/" + encoded + suffix)
+                URI.create(LEETCODE_GRAPHQL)
         )
-                .timeout(Duration.ofSeconds(20))
-                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(15))
+                .header("Content-Type", "application/json")
+                .header("Referer", "https://leetcode.com/")
                 .header("User-Agent", "StudySync/1.0")
-                .GET()
+                .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
         HttpResponse<String> response =
-                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
 
         if (response.statusCode() != 200) {
             throw new IllegalArgumentException(
-                    "Unable to fetch LeetCode profile data (HTTP "
+                    "LeetCode rejected the profile request (HTTP "
                             + response.statusCode() + ")"
             );
         }
 
-        JsonNode json = objectMapper.readTree(response.body());
-
-        if (json.has("error") && !json.path("error").asText().isBlank()) {
+        JsonNode payload = objectMapper.readTree(response.body());
+        if (payload.has("errors")) {
             throw new IllegalArgumentException(
-                    "LeetCode username not found: " + username
+                    "LeetCode rejected the profile request"
             );
         }
 
-        return json;
+        return payload.path("data");
     }
+
+    private int calculateLeetCodeStreak(String calendarText) {
+        if (calendarText == null || calendarText.isBlank()) {
+            return 0;
+        }
+
+        try {
+            JsonNode calendar = objectMapper.readTree(calendarText);
+            LocalDate date = LocalDate.now(ZoneOffset.UTC);
+            int streak = 0;
+
+            while (calendar.has(String.valueOf(date.toEpochDay() * 86400))) {
+                int submissions = calendar
+                        .path(String.valueOf(date.toEpochDay() * 86400))
+                        .asInt(0);
+
+                if (submissions <= 0) {
+                    break;
+                }
+
+                streak++;
+                date = date.minusDays(1);
+            }
+
+            return streak;
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
+
+    private static final String LEETCODE_PROFILE_QUERY = """
+            query getUserProfile($username: String!) {
+              matchedUser(username: $username) {
+                profile {
+                  ranking
+                }
+                submissionCalendar
+                submitStats {
+                  acSubmissionNum {
+                    difficulty
+                    count
+                  }
+                }
+              }
+            }
+            """;
+
+    private static final String LEETCODE_CONTEST_QUERY = """
+            query getUserContestRanking($username: String!) {
+              userContestRanking(username: $username) {
+                attendedContestsCount
+                rating
+                globalRanking
+              }
+              userContestRankingHistory(username: $username) {
+                attended
+                rating
+              }
+            }
+            """;
 
     private void fetchCodeforces(CodingPlatform result, String username) {
         try {
