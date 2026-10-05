@@ -120,7 +120,7 @@ public class CodingPlatformService {
 
             result.setProblemsSolved(solved.path("solvedProblem").asInt(0));
             result.setContestsParticipated(contest.path("contestAttend").asInt(0));
-            result.setRating(contest.path("contestRating").asDouble(0));
+            result.setRating(roundToTwoDecimals(contest.path("contestRating").asDouble(0)));
             result.setPlatformRank(contest.path("contestGlobalRanking").asLong(0));
             result.setStreak(calendar.path("streak").asInt(0));
 
@@ -177,7 +177,11 @@ public class CodingPlatformService {
                     .timeout(Duration.ofSeconds(15))
                     .header("User-Agent", "StudySync/1.0").header("Accept", "application/json").GET().build();
             HttpResponse<String> infoResponse = httpClient.send(infoRequest, HttpResponse.BodyHandlers.ofString());
-            if (infoResponse.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")");
+            if (infoResponse.statusCode() != 200) {
+                throw new IllegalArgumentException(
+                        "Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")"
+                );
+            }
             JsonNode root = objectMapper.readTree(infoResponse.body());
             if (!"OK".equals(root.path("status").asText())) {
                 String comment = root.path("comment").asText("Codeforces rejected the profile request");
@@ -187,24 +191,44 @@ public class CodingPlatformService {
                 throw new IllegalArgumentException("Codeforces username not found: " + username);
             }
             JsonNode user = root.path("result").get(0);
-            result.setRating(user.path("rating").asDouble(0));
-            result.setHighestRating(user.path("maxRating").asDouble(0));
+            result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
+            result.setHighestRating(roundToTwoDecimals(user.path("maxRating").asDouble(0)));
+
+            // Codeforces documents a maximum of one anonymous API call every
+            // two seconds. Wait before the second request instead of triggering
+            // "Call limit exceeded" on the rating endpoint.
+            Thread.sleep(2100);
+
             HttpRequest ratingRequest = HttpRequest.newBuilder(URI.create("https://codeforces.com/api/user.rating?handle=" + encoded))
                     .timeout(Duration.ofSeconds(15))
                     .header("User-Agent", "StudySync/1.0").GET().build();
             HttpResponse<String> ratingResponse = httpClient.send(ratingRequest, HttpResponse.BodyHandlers.ofString());
             if (ratingResponse.statusCode() == 200) {
                 JsonNode ratingRoot = objectMapper.readTree(ratingResponse.body());
-                if ("OK".equals(ratingRoot.path("status").asText()) && ratingRoot.path("result").isArray()) result.setContestsParticipated(ratingRoot.path("result").size());
+                if ("OK".equals(ratingRoot.path("status").asText()) && ratingRoot.path("result").isArray()) {
+                    result.setContestsParticipated(ratingRoot.path("result").size());
+                } else if ("FAILED".equals(ratingRoot.path("status").asText())) {
+                    String comment = ratingRoot.path("comment").asText("");
+                    if (!comment.isBlank() && !comment.toLowerCase().contains("call limit")) {
+                        throw new IllegalArgumentException("Codeforces: " + comment);
+                    }
+                }
             }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalArgumentException("Codeforces profile request was interrupted");
         } catch (HttpTimeoutException ex) {
             throw new IllegalArgumentException("Codeforces profile service timed out. Please try again.");
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalArgumentException("Codeforces profile request was interrupted.");
         } catch (IOException ex) {
             throw new IllegalArgumentException("Unable to read Codeforces profile data: " + ex.getMessage());
         }
+    }
+
+    private double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     private String normalizePlatformName(String value) {
