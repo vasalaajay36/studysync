@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.time.Duration;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -98,7 +99,7 @@ public class CodingPlatformService {
             String body = objectMapper.writeValueAsString(java.util.Map.of("query", query, "variables", java.util.Map.of("username", username)));
             HttpRequest request = HttpRequest.newBuilder(URI.create(LEETCODE_GRAPHQL))
                     .timeout(Duration.ofSeconds(15))
-                    .header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").POST(HttpRequest.BodyPublishers.ofString(body)).build();
+                    .header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").header("Accept", "application/json").timeout(Duration.ofSeconds(15)).POST(HttpRequest.BodyPublishers.ofString(body)).build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch LeetCode profile (HTTP " + response.statusCode() + ")");
             JsonNode user = objectMapper.readTree(response.body()).path("data").path("matchedUser");
@@ -127,7 +128,7 @@ public class CodingPlatformService {
             String encoded = java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8);
             HttpRequest infoRequest = HttpRequest.newBuilder(URI.create(CODEFORCES_API + encoded))
                     .timeout(Duration.ofSeconds(15))
-                    .header("User-Agent", "StudySync/1.0").GET().build();
+                    .header("User-Agent", "StudySync/1.0").header("Accept", "application/json").timeout(Duration.ofSeconds(15)).GET().build();
             HttpResponse<String> infoResponse = httpClient.send(infoRequest, HttpResponse.BodyHandlers.ofString());
             if (infoResponse.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")");
             JsonNode root = objectMapper.readTree(infoResponse.body());
