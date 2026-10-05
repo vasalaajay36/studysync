@@ -1,53 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./CodingPlatforms.css";
 
 const PLATFORM_OPTIONS = [
   {
     name: "LeetCode",
-    url: "https://leetcode.com/",
-    profileUrl: "https://leetcode.com/u/",
     icon: "LC",
     description: "Algorithms & Data Structures",
+    profileUrl: "https://leetcode.com/u/",
     automatic: true,
   },
   {
     name: "Codeforces",
-    url: "https://codeforces.com/",
-    profileUrl: "https://codeforces.com/profile/",
     icon: "CF",
     description: "Competitive Programming",
+    profileUrl: "https://codeforces.com/profile/",
     automatic: true,
   },
   {
     name: "CodeChef",
-    url: "https://www.codechef.com/",
-    profileUrl: "https://www.codechef.com/users/",
     icon: "CC",
     description: "Competitive Programming",
+    profileUrl: "https://www.codechef.com/users/",
     automatic: true,
   },
   {
-    name: "SPOJ",
-    url: "https://www.spoj.com/",
-    profileUrl: "https://www.spoj.com/users/",
-    icon: "SP",
-    description: "Programming Problems",
+    name: "HackerRank",
+    icon: "HR",
+    description: "Programming Practice",
+    profileUrl: "https://www.hackerrank.com/profile/",
     automatic: false,
   },
   {
-    name: "HackerRank",
-    url: "https://www.hackerrank.com/",
-    profileUrl: "https://www.hackerrank.com/profile/",
-    icon: "HR",
-    description: "Programming Practice",
+    name: "SPOJ",
+    icon: "SP",
+    description: "Programming Problems",
+    profileUrl: "https://www.spoj.com/users/",
     automatic: false,
   },
   {
     name: "CSES",
-    url: "https://cses.fi/",
-    profileUrl: "",
     icon: "CS",
     description: "Algorithmic Problem Set",
+    profileUrl: "https://cses.fi/user/",
     automatic: false,
   },
 ];
@@ -65,9 +59,20 @@ const EMPTY_FORM = {
   platformRank: 0,
 };
 
+const numberFields = [
+  ["problemsSolved", "Problems Solved"],
+  ["rating", "Rating"],
+  ["globalRank", "Global Rank"],
+  ["contestsParticipated", "Contests"],
+  ["highestRating", "Highest Rating"],
+  ["streak", "Streak"],
+  ["platformRank", "Platform Rank"],
+];
+
 async function readApiResponse(response) {
   const text = await response.text();
   if (!text) return null;
+
   try {
     return JSON.parse(text);
   } catch {
@@ -75,238 +80,336 @@ async function readApiResponse(response) {
   }
 }
 
+function platformInfo(name) {
+  return (
+    PLATFORM_OPTIONS.find(
+      (platform) => platform.name.toLowerCase() === String(name || "").toLowerCase()
+    ) || {
+      name: name || "Coding Platform",
+      icon: "CP",
+      description: "Coding Platform",
+      profileUrl: "",
+      automatic: false,
+    }
+  );
+}
+
+function formatNumber(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const number = Number(value);
+  if (!Number.isFinite(number) || number === 0) return number === 0 ? "0" : "—";
+  return number.toLocaleString("en-IN");
+}
+
+function formatRating(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const number = Number(value);
+  if (!Number.isFinite(number) || number === 0) return "—";
+  return number.toFixed(2);
+}
+
 function CodingPlatforms() {
   const [platforms, setPlatforms] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [fetchingProfile, setFetchingProfile] = useState(false);
+  const [refreshingId, setRefreshingId] = useState(null);
   const [profileFetched, setProfileFetched] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
-
-  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadPlatforms();
   }, []);
 
   const loadPlatforms = async () => {
-    try {
-      const response = await fetch(
-        "/api/coding-platforms",
-        {
-          credentials: "include",
-        }
-      );
+    setLoading(true);
+    setErrorMessage("");
 
+    try {
+      const response = await fetch("/api/coding-platforms", {
+        credentials: "include",
+      });
       const data = await readApiResponse(response);
+
       if (!response.ok) {
         throw new Error(
           response.status === 401
             ? "Your session has expired. Please sign in again."
-            : data?.detail || data?.message || `Unable to load coding profiles (HTTP ${response.status}).`
+            : data?.message || data?.detail || `Unable to load profiles (HTTP ${response.status}).`
         );
       }
 
       setPlatforms(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Coding platform loading error:", error);
+      console.error("Coding profiles load error:", error);
       setErrorMessage(error.message || "Unable to load coding profiles.");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateField = (field, value) => {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
+  const availablePlatforms = useMemo(
+    () =>
+      PLATFORM_OPTIONS.filter(
+        (option) =>
+          !platforms.some(
+            (profile) =>
+              profile.name?.toLowerCase() === option.name.toLowerCase()
+          )
+      ),
+    [platforms]
+  );
+
+  const automaticProfiles = platforms.filter(
+    (profile) => platformInfo(profile.name).automatic
+  );
+
+  const totalProblems = platforms.reduce(
+    (sum, profile) => sum + (Number(profile.problemsSolved) || 0),
+    0
+  );
+
+  const bestRating = platforms.reduce(
+    (best, profile) => Math.max(best, Number(profile.highestRating) || 0),
+    0
+  );
+
+  const clearMessages = () => {
+    setErrorMessage("");
+    setSuccessMessage("");
   };
 
-  const handlePlatformChange = (event) => {
-    const selectedName = event.target.value;
+  const openCreateForm = () => {
+    clearMessages();
+    setEditingId(null);
+    setFormData({ ...EMPTY_FORM });
+    setProfileFetched(false);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-    const selectedPlatform = PLATFORM_OPTIONS.find(
-      (platform) => platform.name === selectedName
-    );
+  const openEditForm = (profile) => {
+    clearMessages();
+    setEditingId(profile.id);
+    setProfileFetched(true);
+    setFormData({
+      name: profile.name || "",
+      url: profile.url || "",
+      username: profile.username || "",
+      problemsSolved: profile.problemsSolved ?? 0,
+      rating: profile.rating ?? 0,
+      globalRank: profile.globalRank ?? 0,
+      contestsParticipated: profile.contestsParticipated ?? 0,
+      highestRating: profile.highestRating ?? 0,
+      streak: profile.streak ?? 0,
+      platformRank: profile.platformRank ?? 0,
+    });
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-    if (!selectedPlatform) {
-      setFormData({ ...EMPTY_FORM });
-      setProfileFetched(false);
-      return;
-    }
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ ...EMPTY_FORM });
+    setProfileFetched(false);
+  };
+
+  const updateField = (field, value) => {
+    setFormData((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const selectPlatform = (event) => {
+    const name = event.target.value;
+    const info = platformInfo(name);
 
     setFormData({
       ...EMPTY_FORM,
-      name: selectedPlatform.name,
-      url:
-        selectedPlatform.profileUrl ||
-        selectedPlatform.url,
+      name,
+      url: info.profileUrl,
     });
-
     setProfileFetched(false);
-    setErrorMessage("");
+    clearMessages();
   };
 
-  const handleUsernameChange = (event) => {
+  const updateUsername = (event) => {
     const username = event.target.value;
-
-    const selectedPlatform = PLATFORM_OPTIONS.find(
-      (platform) => platform.name === formData.name
-    );
-
-    let generatedUrl = formData.url;
-
-    if (
-      selectedPlatform &&
-      selectedPlatform.profileUrl &&
-      username.trim()
-    ) {
-      generatedUrl =
-        selectedPlatform.profileUrl +
-        username.trim();
-    }
+    const info = platformInfo(formData.name);
 
     setFormData((previous) => ({
       ...previous,
       username,
-      url: generatedUrl,
+      url:
+        info.profileUrl && username.trim()
+          ? info.profileUrl + encodeURIComponent(username.trim())
+          : previous.url,
     }));
   };
 
-  const fetchProfile = async () => {
-    if (!formData.name) {
-      setErrorMessage("Please select a coding platform.");
-      return;
+  const requestProfile = async (name, username) => {
+    const info = platformInfo(name);
+
+    if (!info.automatic) {
+      throw new Error(
+        `${info.name} does not support automatic statistics yet. Enter the statistics manually.`
+      );
     }
 
-    if (!formData.username.trim()) {
-      setErrorMessage("Please enter your username.");
-      return;
-    }
+    const params = new URLSearchParams({
+      platform: name,
+      username: username.trim(),
+    });
 
-    const selectedPlatform = PLATFORM_OPTIONS.find(
-      (platform) => platform.name === formData.name
+    const response = await fetch(
+      `/api/coding-platforms/fetch?${params.toString()}`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
     );
 
-    if (!selectedPlatform?.automatic) {
-      setErrorMessage(
-        `Profile fetching is not available yet for ${selectedPlatform?.name}. The profile URL is generated automatically; enter the statistics manually and save the profile.`
+    const data = await readApiResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        response.status === 401
+          ? "Your session has expired. Please sign in again."
+          : data?.message ||
+              data?.detail ||
+              data?.error ||
+              `Unable to fetch profile (HTTP ${response.status}).`
       );
+    }
+
+    return data;
+  };
+
+  const fetchProfile = async () => {
+    if (!formData.name || !formData.username.trim()) {
+      setErrorMessage("Select a platform and enter a username first.");
       return;
     }
 
     setFetchingProfile(true);
-    setErrorMessage("");
+    clearMessages();
 
     try {
-      const params = new URLSearchParams({
-        platform: formData.name,
-        username: formData.username.trim(),
-      });
-
-      const response = await fetch(
-        `/api/coding-platforms/fetch?${params}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      const data = await readApiResponse(response);
-
-      if (!response.ok) {
-        throw new Error(
-          response.status === 401
-            ? "Your session has expired. Please sign in again."
-            : data?.detail || data?.message || data?.error || `Unable to fetch profile (HTTP ${response.status}).`
-        );
-      }
+      const data = await requestProfile(formData.name, formData.username);
 
       setFormData((previous) => ({
         ...previous,
         name: data.name || previous.name,
         url: data.url || previous.url,
-        username:
-          data.username || previous.username,
-        problemsSolved: data.problemsSolved || 0,
-        rating: data.rating == null ? 0 : Number(data.rating.toFixed ? data.rating.toFixed(2) : Number(data.rating)),
-        globalRank: data.globalRank || 0,
-        contestsParticipated:
-          data.contestsParticipated || 0,
-        highestRating: data.highestRating || 0,
-        streak: data.streak || 0,
-        platformRank: data.platformRank || 0,
+        username: data.username || previous.username,
+        problemsSolved: data.problemsSolved ?? 0,
+        rating: data.rating ?? 0,
+        globalRank: data.globalRank ?? 0,
+        contestsParticipated: data.contestsParticipated ?? 0,
+        highestRating: data.highestRating ?? 0,
+        streak: data.streak ?? 0,
+        platformRank: data.platformRank ?? 0,
       }));
 
       setProfileFetched(true);
+      setSuccessMessage("Profile fetched successfully. Review the statistics and save it.");
     } catch (error) {
-      console.error("Profile fetch error:", error);
-      setErrorMessage(
-        error.message || "Unable to fetch coding profile."
-      );
+      console.error("Coding profile fetch error:", error);
+      setErrorMessage(error.message || "Unable to fetch coding profile.");
     } finally {
       setFetchingProfile(false);
     }
   };
 
-  const handleSubmit = async (event) => {
+  const refreshProfile = async (profile) => {
+    const info = platformInfo(profile.name);
+
+    if (!info.automatic) {
+      setErrorMessage(`${profile.name} requires manual statistics.`);
+      return;
+    }
+
+    setRefreshingId(profile.id);
+    clearMessages();
+
+    try {
+      const data = await requestProfile(profile.name, profile.username);
+
+      const payload = {
+        name: data.name || profile.name,
+        url: data.url || profile.url,
+        username: data.username || profile.username,
+        problemsSolved: Number(data.problemsSolved) || 0,
+        rating: Number(data.rating) || 0,
+        globalRank: Number(data.globalRank) || 0,
+        contestsParticipated: Number(data.contestsParticipated) || 0,
+        highestRating: Number(data.highestRating) || 0,
+        streak: Number(data.streak) || 0,
+        platformRank: Number(data.platformRank) || 0,
+      };
+
+      const response = await fetch(`/api/coding-platforms/${profile.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const saved = await readApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          saved?.message ||
+            saved?.detail ||
+            `Unable to save refreshed profile (HTTP ${response.status}).`
+        );
+      }
+
+      setPlatforms((previous) =>
+        previous.map((item) => (item.id === saved.id ? saved : item))
+      );
+      setSuccessMessage(`${profile.name} profile synced successfully.`);
+    } catch (error) {
+      console.error("Coding profile refresh error:", error);
+      setErrorMessage(error.message || "Unable to refresh profile.");
+    } finally {
+      setRefreshingId(null);
+    }
+  };
+
+  const saveProfile = async (event) => {
     event.preventDefault();
+    clearMessages();
 
-    if (!formData.name) {
-      setErrorMessage("Please select a coding platform.");
+    if (!formData.name || !formData.username.trim()) {
+      setErrorMessage("Platform and username are required.");
       return;
     }
-
-    if (!formData.username.trim()) {
-      setErrorMessage("Please enter your username.");
-      return;
-    }
-
-    const url = editingId
-      ? `/api/coding-platforms/${editingId}`
-      : "/api/coding-platforms";
-
-    const method = editingId ? "PUT" : "POST";
 
     const payload = {
       name: formData.name,
       url: formData.url,
-      username: formData.username,
-
-      problemsSolved:
-        Number(formData.problemsSolved) || 0,
-
-      rating:
-        Number(formData.rating) || 0,
-
-      globalRank:
-        Number(formData.globalRank) || 0,
-
-      contestsParticipated:
-        Number(formData.contestsParticipated) || 0,
-
-      highestRating:
-        Number(formData.highestRating) || 0,
-
-      streak:
-        Number(formData.streak) || 0,
-
-      platformRank:
-        Number(formData.platformRank) || 0,
+      username: formData.username.trim(),
+      problemsSolved: Number(formData.problemsSolved) || 0,
+      rating: Number(formData.rating) || 0,
+      globalRank: Number(formData.globalRank) || 0,
+      contestsParticipated: Number(formData.contestsParticipated) || 0,
+      highestRating: Number(formData.highestRating) || 0,
+      streak: Number(formData.streak) || 0,
+      platformRank: Number(formData.platformRank) || 0,
     };
 
     try {
-      const response = await fetch(url, {
-        method,
+      const endpoint = editingId
+        ? `/api/coding-platforms/${editingId}`
+        : "/api/coding-platforms";
+
+      const response = await fetch(endpoint, {
+        method: editingId ? "PUT" : "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -316,750 +419,372 @@ function CodingPlatforms() {
         throw new Error(
           response.status === 401
             ? "Your session has expired. Please sign in again."
-            : data?.detail || data?.message || data?.error || `Unable to save coding platform (HTTP ${response.status}).`
-        );
-      }
-
-      if (editingId) {
-        setPlatforms((previous) =>
-          previous.map((platform) =>
-            platform.id === data.id
-              ? data
-              : platform
-          )
-        );
-      } else {
-        setPlatforms((previous) => [
-          ...previous,
-          data,
-        ]);
-      }
-
-      resetForm();
-
-      setErrorMessage("");
-    } catch (error) {
-      console.error(
-        "Coding platform save error:",
-        error
-      );
-
-      setErrorMessage(
-        error.message ||
-          "Unable to save coding platform."
-      );
-    }
-  };
-
-  const editPlatform = (platform) => {
-    setFormData({
-      name: platform.name || "",
-      url: platform.url || "",
-      username: platform.username || "",
-
-      problemsSolved:
-        platform.problemsSolved ?? 0,
-
-      rating:
-        platform.rating ?? 0,
-
-      globalRank:
-        platform.globalRank ?? 0,
-
-      contestsParticipated:
-        platform.contestsParticipated ?? 0,
-
-      highestRating:
-        platform.highestRating ?? 0,
-
-      streak:
-        platform.streak ?? 0,
-
-      platformRank:
-        platform.platformRank ?? 0,
-    });
-
-    setEditingId(platform.id);
-
-    setProfileFetched(true);
-
-    setErrorMessage("");
-
-    setShowForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const deletePlatform = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this coding profile?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/coding-platforms/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok && response.status !== 204) {
-        throw new Error(
-          "Unable to delete coding platform"
+            : data?.message ||
+                data?.detail ||
+                `Unable to save profile (HTTP ${response.status}).`
         );
       }
 
       setPlatforms((previous) =>
-        previous.filter(
-          (platform) => platform.id !== id
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Coding platform deletion error:",
-        error
+        editingId
+          ? previous.map((profile) => (profile.id === data.id ? data : profile))
+          : [...previous, data]
       );
 
-      setErrorMessage(
-        "Unable to delete coding platform."
+      closeForm();
+      setSuccessMessage(
+        editingId ? "Coding profile updated." : "Coding profile added."
       );
+    } catch (error) {
+      console.error("Coding profile save error:", error);
+      setErrorMessage(error.message || "Unable to save coding profile.");
     }
   };
 
-  const resetForm = () => {
-    setFormData({ ...EMPTY_FORM });
-    setEditingId(null);
-    setProfileFetched(false);
-    setFetchingProfile(false);
-    setShowForm(false);
-  };
+  const deleteProfile = async (profile) => {
+    if (!window.confirm(`Delete the ${profile.name} profile for @${profile.username}?`)) {
+      return;
+    }
 
-  const getPlatformInfo = (name) => {
-    return (
-      PLATFORM_OPTIONS.find(
-        (platform) =>
-          platform.name.toLowerCase() ===
-          name?.toLowerCase()
-      ) || {
-        icon: "CP",
-        description: "Coding Platform",
+    clearMessages();
+
+    try {
+      const response = await fetch(`/api/coding-platforms/${profile.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await readApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.detail ||
+            `Unable to delete profile (HTTP ${response.status}).`
+        );
       }
-    );
+
+      setPlatforms((previous) =>
+        previous.filter((item) => item.id !== profile.id)
+      );
+      setSuccessMessage(`${profile.name} profile deleted.`);
+    } catch (error) {
+      console.error("Coding profile delete error:", error);
+      setErrorMessage(error.message || "Unable to delete coding profile.");
+    }
   };
 
   const goTo = (path) => {
-    window.location.href = path;
+    window.location.assign(path);
   };
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } catch (error) {
-      console.error("Logout request failed:", error);
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
     } finally {
       localStorage.removeItem("student");
       window.location.assign("/");
     }
   };
 
-  const availablePlatforms =
-    PLATFORM_OPTIONS.filter(
-      (option) =>
-        !platforms.some(
-          (platform) =>
-            platform.name?.toLowerCase() ===
-            option.name.toLowerCase()
-        )
-    );
-
   return (
     <div className="coding-platforms-page">
-
       <aside className="coding-sidebar">
-        <h2 className="coding-logo">
-          Study<span>Sync</span>
-        </h2>
+        <div className="coding-brand">
+          <h2>
+            Study<span>Sync</span>
+          </h2>
+          <p>Student workspace</p>
+        </div>
 
-        <nav className="coding-nav">
-          <button onClick={() => goTo("/dashboard")}>
-            Dashboard
-          </button>
-
-          <button onClick={() => goTo("/tasks")}>
-            Tasks
-          </button>
-
-          <button onClick={() => goTo("/subjects")}>
-            Subjects
-          </button>
-
-          <button
-            onClick={() =>
-              goTo("/study-sessions")
-            }
-          >
-            Study Sessions
-          </button>
-
-          <button
-            className="active"
-            onClick={() =>
-              goTo("/coding-platforms")
-            }
-          >
+        <nav className="coding-nav" aria-label="Main navigation">
+          <button onClick={() => goTo("/dashboard")}>Dashboard</button>
+          <button onClick={() => goTo("/tasks")}>Tasks</button>
+          <button onClick={() => goTo("/subjects")}>Subjects</button>
+          <button onClick={() => goTo("/study-sessions")}>Study Sessions</button>
+          <button className="active" onClick={() => goTo("/coding-platforms")}>
             Coding Platforms
           </button>
         </nav>
 
-        <button
-          className="logout-coding-button"
-          onClick={logout}
-        >
+        <button className="logout-coding-button" onClick={logout}>
           Logout
         </button>
       </aside>
 
       <main className="coding-main">
-
         <header className="coding-header">
           <div>
-            <div className="page-eyebrow">
-              YOUR CODING JOURNEY
-            </div>
-
+            <span className="page-eyebrow">CODING PROGRESS</span>
             <h1>Coding Profiles</h1>
-
             <p>
-              Keep your competitive programming
-              profiles, statistics and progress
-              in one place.
+              Connect your coding accounts and keep your problem-solving progress
+              together.
             </p>
           </div>
 
-          <div className="coding-header-buttons">
-
-            <button
-              className="add-platform-button"
-              onClick={() => {
-                if (showForm) {
-                  resetForm();
-                } else {
-                  setFormData({ ...EMPTY_FORM });
-                  setEditingId(null);
-                  setProfileFetched(false);
-                  setShowForm(true);
-                }
-              }}
-            >
-              {showForm
-                ? "Cancel"
-                : "+ Add Profile"}
+          <div className="coding-header-actions">
+            <button className="secondary-button" onClick={loadPlatforms} disabled={loading}>
+              {loading ? "Loading..." : "Refresh"}
             </button>
-
-            <button
-              className="back-coding-button"
-              onClick={() =>
-                goTo("/dashboard")
-              }
-            >
-              Dashboard
+            <button className="primary-button" onClick={showForm ? closeForm : openCreateForm}>
+              {showForm ? "Close Form" : "+ Add Profile"}
             </button>
-
           </div>
         </header>
 
-        {errorMessage && (
-          <div className="coding-error">
-            {errorMessage}
-          </div>
-        )}
-
-        {showForm && (
-          <form
-            className="coding-form"
-            onSubmit={handleSubmit}
-          >
-
-            <div className="form-title">
-              <div>
-                <span className="form-small-title">
-                  PROFILE SETUP
-                </span>
-
-                <h2>
-                  {editingId
-                    ? "Edit Coding Profile"
-                    : "Add Coding Profile"}
-                </h2>
-              </div>
-
-              <span className="form-badge">
-                {editingId ? "EDIT" : "NEW"}
-              </span>
-            </div>
-
-            <div className="form-grid">
-
-              <div className="form-group">
-                <label>Coding Platform</label>
-
-                {editingId ? (
-                  <input
-                    type="text"
-                    value={formData.name}
-                    disabled
-                  />
-                ) : (
-                  <select
-                    value={formData.name}
-                    onChange={
-                      handlePlatformChange
-                    }
-                    required
-                  >
-                    <option value="">
-                      Select a platform
-                    </option>
-
-                    {availablePlatforms.map(
-                      (platform) => (
-                        <option
-                          key={platform.name}
-                          value={platform.name}
-                        >
-                          {platform.name}
-                        </option>
-                      )
-                    )}
-                  </select>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Username</label>
-
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={
-                    handleUsernameChange
-                  }
-                  placeholder="Enter username"
-                  required
-                />
-              </div>
-
-            </div>
-
-            <div className="auto-url-box">
-              <span>PROFILE URL</span>
-
-              <input
-                type="url"
-                value={formData.url}
-                onChange={(event) =>
-                  updateField(
-                    "url",
-                    event.target.value
-                  )
-                }
-                placeholder="Profile URL"
-              />
-            </div>
-
-            {!editingId && formData.name && (
-                <button
-                  type="button"
-                  className="fetch-profile-button"
-                  onClick={fetchProfile}
-                  disabled={fetchingProfile}
-                >
-                  {fetchingProfile
-                    ? `Fetching ${formData.name} Profile...`
-                    : "Fetch Profile"}
-                </button>
-              )}
-
-            <div className="form-grid">
-
-              <div className="form-group">
-                <label>Problems Solved</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.problemsSolved}
-                  onChange={(event) =>
-                    updateField(
-                      "problemsSolved",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Rating</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.rating}
-                  onChange={(event) =>
-                    updateField(
-                      "rating",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Global Rank</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.globalRank}
-                  onChange={(event) =>
-                    updateField(
-                      "globalRank",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Contests Participated</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={
-                    formData.contestsParticipated
-                  }
-                  onChange={(event) =>
-                    updateField(
-                      "contestsParticipated",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Highest Rating</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.highestRating}
-                  onChange={(event) =>
-                    updateField(
-                      "highestRating",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Streak</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.streak}
-                  onChange={(event) =>
-                    updateField(
-                      "streak",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Platform Rank</label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.platformRank}
-                  onChange={(event) =>
-                    updateField(
-                      "platformRank",
-                      event.target.value
-                    )
-                  }
-                />
-              </div>
-
-            </div>
-
-            {profileFetched && (
-              <div className="profile-preview">
-
-                <div className="preview-header">
-                  <div>
-                    <span>
-                      PROFILE READY
-                    </span>
-
-                    <h3>
-                      {formData.username}
-                    </h3>
-                  </div>
-
-                  <div className="preview-success">
-                    ✓ Verified
-                  </div>
-                </div>
-
-                <div className="preview-stats">
-
-                  <div>
-                    <span>Problems</span>
-                    <strong>
-                      {formData.problemsSolved}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Rating</span>
-                    <strong>
-                      {formData.rating
-                        ? Number(formData.rating).toFixed(2)
-                        : "—"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Global Rank</span>
-                    <strong>
-                      {formData.globalRank
-                        ? `#${formData.globalRank}`
-                        : "—"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Contests</span>
-                    <strong>
-                      {formData.contestsParticipated}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Highest Rating</span>
-                    <strong>
-                      {formData.highestRating ||
-                        "—"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Streak</span>
-                    <strong>
-                      {formData.streak} days
-                    </strong>
-                  </div>
-
-                </div>
-              </div>
-            )}
-
-            <button
-              className="save-platform-button"
-              type="submit"
-            >
-              {editingId
-                ? "Save Changes"
-                : "Save Profile"}
-            </button>
-
-          </form>
-        )}
-
-        {loading && (
-          <div className="coding-loading">
-            Loading your coding profiles...
-          </div>
-        )}
-
-        {!loading && platforms.length === 0 && (
-          <div className="empty-profile">
-            <div className="empty-icon">CP</div>
-
-            <h2>
-              Build your coding portfolio
-            </h2>
-
-            <p>
-              Add your coding profiles and
-              automatically track your
-              competitive programming progress.
-            </p>
-
-            <button
-              onClick={() =>
-                setShowForm(true)
-              }
-            >
-              + Add Your First Profile
+        {(errorMessage || successMessage) && (
+          <div className={errorMessage ? "coding-alert error" : "coding-alert success"}>
+            <span>{errorMessage || successMessage}</span>
+            <button type="button" onClick={clearMessages} aria-label="Dismiss message">
+              ×
             </button>
           </div>
         )}
 
-        {!loading && platforms.length > 0 && (
-          <section className="coding-grid">
-
-            {platforms.map((platform) => {
-              const info =
-                getPlatformInfo(platform.name);
-
-              return (
-                <div
-                  className="coding-card"
-                  key={platform.id}
-                >
-
-                  <div className="card-top">
-
-                    <div className="platform-icon">
-                      {info.icon}
-                    </div>
-
-                    <div className="platform-heading">
-                      <h2>{platform.name}</h2>
-
-                      <p>
-                        {info.description}
-                      </p>
-                    </div>
-
-                    <div className="profile-status">
-                      ACTIVE
-                    </div>
-
-                  </div>
-
-                  <div className="username-row">
-
-                    <span>
-                      @{platform.username}
-                    </span>
-
-                    <a
-                      href={platform.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open Profile ↗
-                    </a>
-
-                  </div>
-
-                  <div className="profile-stats">
-
-                    <div className="profile-stat">
-                      <span>Problems</span>
-
-                      <strong>
-                        {platform.problemsSolved || 0}
-                      </strong>
-                    </div>
-
-                    <div className="profile-stat">
-                      <span>Rating</span>
-
-                      <strong>
-                        {platform.rating
-                        ? Number(platform.rating).toFixed(2)
-                        : "—"}
-                      </strong>
-                    </div>
-
-                    <div className="profile-stat">
-                      <span>Global Rank</span>
-
-                      <strong>
-                        {platform.globalRank
-                          ? `#${platform.globalRank}`
-                          : "—"}
-                      </strong>
-                    </div>
-
-                  </div>
-
-                  <div className="secondary-stats">
-
-                    <div>
-                      <span>Contests</span>
-
-                      <strong>
-                        {platform.contestsParticipated ||
-                          0}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>Highest Rating</span>
-
-                      <strong>
-                        {platform.highestRating ||
-                          "—"}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>Streak</span>
-
-                      <strong>
-                        {platform.streak || 0} days
-                      </strong>
-                    </div>
-
-                  </div>
-
-                  <div className="card-actions">
-
-                    <button
-                      className="edit-platform-button"
-                      onClick={() =>
-                        editPlatform(platform)
-                      }
-                    >
-                      Edit Profile
-                    </button>
-
-                    <button
-                      className="delete-platform-button"
-                      onClick={() =>
-                        deletePlatform(platform.id)
-                      }
-                    >
-                      Delete
-                    </button>
-
-                  </div>
-
-                </div>
-              );
-            })}
-
+        {!loading && (
+          <section className="coding-summary">
+            <div>
+              <span>PROFILES</span>
+              <strong>{platforms.length}</strong>
+            </div>
+            <div>
+              <span>AUTO SYNC</span>
+              <strong>{automaticProfiles.length}</strong>
+            </div>
+            <div>
+              <span>PROBLEMS SOLVED</span>
+              <strong>{formatNumber(totalProblems)}</strong>
+            </div>
+            <div>
+              <span>BEST RATING</span>
+              <strong>{bestRating ? formatRating(bestRating) : "—"}</strong>
+            </div>
           </section>
         )}
 
+        {showForm && (
+          <form className="coding-form" onSubmit={saveProfile}>
+            <div className="form-heading">
+              <div>
+                <span>{editingId ? "EDIT PROFILE" : "ADD PROFILE"}</span>
+                <h2>{editingId ? "Update your coding profile" : "Connect a coding account"}</h2>
+              </div>
+              <button type="button" className="close-form-button" onClick={closeForm}>
+                ×
+              </button>
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Platform
+                {editingId ? (
+                  <input value={formData.name} disabled />
+                ) : (
+                  <select value={formData.name} onChange={selectPlatform} required>
+                    <option value="">Select platform</option>
+                    {availablePlatforms.map((option) => (
+                      <option key={option.name} value={option.name}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </label>
+
+              <label>
+                Username
+                <input
+                  value={formData.username}
+                  onChange={updateUsername}
+                  placeholder="e.g. vasalaajay36"
+                  required
+                />
+              </label>
+            </div>
+
+            {formData.name && (
+              <div className="profile-url-row">
+                <div>
+                  <span>PROFILE URL</span>
+                  <strong>{formData.url || "Enter your username to generate the URL."}</strong>
+                </div>
+                {formData.url && (
+                  <a href={formData.url} target="_blank" rel="noreferrer">
+                    Open ↗
+                  </a>
+                )}
+              </div>
+            )}
+
+            {formData.name && (
+              <div className="fetch-row">
+                <div>
+                  <strong>{platformInfo(formData.name).automatic ? "Automatic statistics" : "Manual statistics"}</strong>
+                  <span>
+                    {platformInfo(formData.name).automatic
+                      ? "Fetch the public profile before saving it."
+                      : "This platform is saved with statistics you enter."}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="sync-button"
+                  onClick={fetchProfile}
+                  disabled={fetchingProfile || !platformInfo(formData.name).automatic}
+                >
+                  {fetchingProfile ? "Fetching..." : "Fetch Profile"}
+                </button>
+              </div>
+            )}
+
+            <div className="stats-heading">
+              <div>
+                <span>STATISTICS</span>
+                <h3>{profileFetched ? "Fetched profile data" : "Profile statistics"}</h3>
+              </div>
+              {!platformInfo(formData.name).automatic && formData.name && (
+                <small>Enter the values available on your platform.</small>
+              )}
+            </div>
+
+            <div className="stats-grid">
+              {numberFields.map(([field, label]) => (
+                <label key={field}>
+                  {label}
+                  <input
+                    type="number"
+                    min="0"
+                    step={field === "rating" || field === "highestRating" ? "0.01" : "1"}
+                    value={formData[field]}
+                    onChange={(event) => updateField(field, event.target.value)}
+                  />
+                </label>
+              ))}
+            </div>
+
+            {profileFetched && (
+              <div className="verified-preview">
+                <span>PROFILE FETCHED</span>
+                <strong>@{formData.username}</strong>
+                <p>Review the statistics above, then save the profile to your StudySync account.</p>
+              </div>
+            )}
+
+            <div className="form-footer">
+              <button type="button" className="secondary-button" onClick={closeForm}>
+                Cancel
+              </button>
+              <button type="submit" className="primary-button">
+                {editingId ? "Save Changes" : "Save Profile"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {loading ? (
+          <div className="coding-empty">
+            <div className="loading-spinner" />
+            <h2>Loading coding profiles</h2>
+            <p>Fetching your saved profiles...</p>
+          </div>
+        ) : platforms.length === 0 ? (
+          <div className="coding-empty">
+            <div className="empty-icon">CP</div>
+            <h2>Your coding portfolio is empty</h2>
+            <p>
+              Add LeetCode, Codeforces, CodeChef or another supported platform to
+              start tracking your progress.
+            </p>
+            <button className="primary-button" onClick={openCreateForm}>
+              + Add Your First Profile
+            </button>
+          </div>
+        ) : (
+          <section className="coding-grid">
+            {platforms.map((profile) => {
+              const info = platformInfo(profile.name);
+              const refreshing = refreshingId === profile.id;
+
+              return (
+                <article className="coding-card" key={profile.id}>
+                  <div className="card-heading">
+                    <div className="platform-icon">{info.icon}</div>
+                    <div className="platform-title">
+                      <div>
+                        <h2>{profile.name}</h2>
+                        <span>{info.description}</span>
+                      </div>
+                      <span className={info.automatic ? "sync-badge" : "manual-badge"}>
+                        {info.automatic ? "AUTO SYNC" : "MANUAL"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="profile-identity">
+                    <div>
+                      <span>USERNAME</span>
+                      <strong>@{profile.username}</strong>
+                    </div>
+                    {profile.url && (
+                      <a href={profile.url} target="_blank" rel="noreferrer">
+                        View Profile ↗
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="stats-cards">
+                    <div>
+                      <span>Problems</span>
+                      <strong>{formatNumber(profile.problemsSolved)}</strong>
+                    </div>
+                    <div>
+                      <span>Rating</span>
+                      <strong>{formatRating(profile.rating)}</strong>
+                    </div>
+                    <div>
+                      <span>Global Rank</span>
+                      <strong>{profile.globalRank ? `#${formatNumber(profile.globalRank)}` : "—"}</strong>
+                    </div>
+                    <div>
+                      <span>Contests</span>
+                      <strong>{formatNumber(profile.contestsParticipated)}</strong>
+                    </div>
+                    <div>
+                      <span>Best Rating</span>
+                      <strong>{formatRating(profile.highestRating)}</strong>
+                    </div>
+                    <div>
+                      <span>Streak</span>
+                      <strong>{formatNumber(profile.streak)} days</strong>
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
+                    {info.automatic && (
+                      <button
+                        className="sync-card-button"
+                        onClick={() => refreshProfile(profile)}
+                        disabled={refreshing}
+                      >
+                        {refreshing ? "Syncing..." : "↻ Sync Stats"}
+                      </button>
+                    )}
+                    <button className="edit-card-button" onClick={() => openEditForm(profile)}>
+                      Edit
+                    </button>
+                    <button className="delete-card-button" onClick={() => deleteProfile(profile)}>
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
       </main>
     </div>
   );
