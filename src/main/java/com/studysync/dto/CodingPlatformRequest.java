@@ -1,5 +1,6 @@
 package com.studysync.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 public class CodingPlatformRequest {
@@ -12,12 +13,19 @@ public class CodingPlatformRequest {
     @NotBlank
     private String username;
 
+    @Min(0)
     private Integer problemsSolved;
+    @Min(0)
     private Double rating;
+    @Min(0)
     private Long globalRank;
+    @Min(0)
     private Integer contestsParticipated;
+    @Min(0)
     private Double highestRating;
+    @Min(0)
     private Integer streak;
+    @Min(0)
     private Long platformRank;
 
     public CodingPlatformRequest() {}
