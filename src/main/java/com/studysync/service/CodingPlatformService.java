@@ -100,44 +100,74 @@ public class CodingPlatformService {
     }
 
     private void fetchLeetCode(CodingPlatform result, String username) {
-        String query = "query($username:String!){matchedUser(username:$username){username profile{ranking} submitStatsGlobal{acSubmissionNum{difficulty count}} userContestRanking{attendedContestsCount rating globalRanking}}}";
+        /*
+         * LeetCode's public GraphQL endpoint is not a stable public API and can
+         * reject server-side requests with HTTP 400. Use the maintained REST
+         * adapter for public profile statistics instead.
+         */
         try {
-            String body = objectMapper.writeValueAsString(java.util.Map.of("query", query, "variables", java.util.Map.of("username", username)));
-            HttpRequest request = HttpRequest.newBuilder(URI.create(LEETCODE_GRAPHQL))
-                    .timeout(Duration.ofSeconds(15))
-                    .header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").header("Accept", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch LeetCode profile (HTTP " + response.statusCode() + ")");
-            JsonNode root = objectMapper.readTree(response.body());
-            JsonNode errors = root.path("errors");
-            if (errors.isArray() && !errors.isEmpty()) {
-                String message = errors.get(0).path("message").asText("LeetCode rejected the profile request");
-                throw new IllegalArgumentException("LeetCode: " + message);
-            }
+            JsonNode profile = getLeetCodeJson(username, "");
+            JsonNode solved = getLeetCodeJson(username, "/solved");
+            JsonNode contest = getLeetCodeJson(username, "/contest");
+            JsonNode calendar = getLeetCodeJson(username, "/calendar");
 
-            JsonNode user = root.path("data").path("matchedUser");
-            if (user.isMissingNode() || user.isNull() || user.isEmpty()) {
+            if (profile.has("error")) {
                 throw new IllegalArgumentException("LeetCode username not found: " + username);
             }
-            result.setUsername(user.path("username").asText(username));
-            result.setGlobalRank(user.path("profile").path("ranking").asLong(0));
-            int solved = 0;
-            for (JsonNode item : user.path("submitStatsGlobal").path("acSubmissionNum")) {
-                if ("All".equalsIgnoreCase(item.path("difficulty").asText())) solved = item.path("count").asInt(0);
-            }
-            result.setProblemsSolved(solved);
-            JsonNode contest = user.path("userContestRanking");
-            result.setContestsParticipated(contest.path("attendedContestsCount").asInt(0));
-            result.setRating(contest.path("rating").asDouble(0));
-            result.setPlatformRank(contest.path("globalRanking").asLong(0));
+
+            result.setUsername(profile.path("username").asText(username));
+            result.setGlobalRank(profile.path("ranking").asLong(0));
+
+            result.setProblemsSolved(solved.path("solvedProblem").asInt(0));
+            result.setContestsParticipated(contest.path("contestAttend").asInt(0));
+            result.setRating(contest.path("contestRating").asDouble(0));
+            result.setPlatformRank(contest.path("contestGlobalRanking").asLong(0));
+            result.setStreak(calendar.path("streak").asInt(0));
+
+            result.setUrl(buildProfileUrl("leetcode", result.getUsername()));
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalArgumentException("LeetCode profile request was interrupted");
-        } catch (HttpTimeoutException ex) {
-            throw new IllegalArgumentException("LeetCode profile service timed out. Please try again.");
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Unable to read LeetCode profile data: " + ex.getMessage());
+            throw new IllegalArgumentException("Unable to read LeetCode profile data");
         }
+    }
+
+    private JsonNode getLeetCodeJson(String username, String suffix)
+            throws IOException, InterruptedException {
+        String encoded = java.net.URLEncoder.encode(
+                username,
+                java.nio.charset.StandardCharsets.UTF_8
+        );
+
+        HttpRequest request = HttpRequest.newBuilder(
+                URI.create("https://alfa-leetcode-api.onrender.com/" + encoded + suffix)
+        )
+                .timeout(Duration.ofSeconds(20))
+                .header("Accept", "application/json")
+                .header("User-Agent", "StudySync/1.0")
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new IllegalArgumentException(
+                    "Unable to fetch LeetCode profile data (HTTP "
+                            + response.statusCode() + ")"
+            );
+        }
+
+        JsonNode json = objectMapper.readTree(response.body());
+
+        if (json.has("error") && !json.path("error").asText().isBlank()) {
+            throw new IllegalArgumentException(
+                    "LeetCode username not found: " + username
+            );
+        }
+
+        return json;
     }
 
     private void fetchCodeforces(CodingPlatform result, String username) {
