@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -123,8 +124,10 @@ public class CodingPlatformService {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalArgumentException("LeetCode profile request was interrupted");
+        } catch (HttpTimeoutException ex) {
+            throw new IllegalArgumentException("LeetCode profile service timed out. Please try again.");
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Unable to read LeetCode profile data");
+            throw new IllegalArgumentException("Unable to read LeetCode profile data: " + ex.getMessage());
         }
     }
 
@@ -152,8 +155,10 @@ public class CodingPlatformService {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalArgumentException("Codeforces profile request was interrupted");
+        } catch (HttpTimeoutException ex) {
+            throw new IllegalArgumentException("Codeforces profile service timed out. Please try again.");
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Unable to read Codeforces profile data");
+            throw new IllegalArgumentException("Unable to read Codeforces profile data: " + ex.getMessage());
         }
     }
 
