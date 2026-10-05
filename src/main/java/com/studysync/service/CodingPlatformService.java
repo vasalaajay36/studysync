@@ -108,8 +108,17 @@ public class CodingPlatformService {
                     .header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").header("Accept", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch LeetCode profile (HTTP " + response.statusCode() + ")");
-            JsonNode user = objectMapper.readTree(response.body()).path("data").path("matchedUser");
-            if (user.isMissingNode() || user.isNull()) throw new IllegalArgumentException("LeetCode username not found: " + username);
+            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode errors = root.path("errors");
+            if (errors.isArray() && !errors.isEmpty()) {
+                String message = errors.get(0).path("message").asText("LeetCode rejected the profile request");
+                throw new IllegalArgumentException("LeetCode: " + message);
+            }
+
+            JsonNode user = root.path("data").path("matchedUser");
+            if (user.isMissingNode() || user.isNull() || user.isEmpty()) {
+                throw new IllegalArgumentException("LeetCode username not found: " + username);
+            }
             result.setUsername(user.path("username").asText(username));
             result.setGlobalRank(user.path("profile").path("ranking").asLong(0));
             int solved = 0;
@@ -140,7 +149,13 @@ public class CodingPlatformService {
             HttpResponse<String> infoResponse = httpClient.send(infoRequest, HttpResponse.BodyHandlers.ofString());
             if (infoResponse.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")");
             JsonNode root = objectMapper.readTree(infoResponse.body());
-            if (!"OK".equals(root.path("status").asText()) || !root.path("result").isArray() || root.path("result").size() == 0) throw new IllegalArgumentException("Codeforces username not found: " + username);
+            if (!"OK".equals(root.path("status").asText())) {
+                String comment = root.path("comment").asText("Codeforces rejected the profile request");
+                throw new IllegalArgumentException("Codeforces: " + comment);
+            }
+            if (!root.path("result").isArray() || root.path("result").size() == 0) {
+                throw new IllegalArgumentException("Codeforces username not found: " + username);
+            }
             JsonNode user = root.path("result").get(0);
             result.setRating(user.path("rating").asDouble(0));
             result.setHighestRating(user.path("maxRating").asDouble(0));
