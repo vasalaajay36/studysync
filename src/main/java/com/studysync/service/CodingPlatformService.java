@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -33,7 +34,9 @@ public class CodingPlatformService {
         this.repository = repository;
         this.studentRepository = studentRepository;
         this.objectMapper = objectMapper;
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 
     public List<CodingPlatformResponse> getAll(Long studentId) {
@@ -93,7 +96,9 @@ public class CodingPlatformService {
         String query = "query($username:String!){matchedUser(username:$username){username profile{ranking} submitStatsGlobal{acSubmissionNum{difficulty count}} userContestRanking{attendedContestsCount rating globalRanking}}}";
         try {
             String body = objectMapper.writeValueAsString(java.util.Map.of("query", query, "variables", java.util.Map.of("username", username)));
-            HttpRequest request = HttpRequest.newBuilder(URI.create(LEETCODE_GRAPHQL)).header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").POST(HttpRequest.BodyPublishers.ofString(body)).build();
+            HttpRequest request = HttpRequest.newBuilder(URI.create(LEETCODE_GRAPHQL))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Content-Type", "application/json").header("User-Agent", "StudySync/1.0").POST(HttpRequest.BodyPublishers.ofString(body)).build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch LeetCode profile (HTTP " + response.statusCode() + ")");
             JsonNode user = objectMapper.readTree(response.body()).path("data").path("matchedUser");
@@ -120,7 +125,9 @@ public class CodingPlatformService {
     private void fetchCodeforces(CodingPlatform result, String username) {
         try {
             String encoded = java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8);
-            HttpRequest infoRequest = HttpRequest.newBuilder(URI.create(CODEFORCES_API + encoded)).header("User-Agent", "StudySync/1.0").GET().build();
+            HttpRequest infoRequest = HttpRequest.newBuilder(URI.create(CODEFORCES_API + encoded))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("User-Agent", "StudySync/1.0").GET().build();
             HttpResponse<String> infoResponse = httpClient.send(infoRequest, HttpResponse.BodyHandlers.ofString());
             if (infoResponse.statusCode() != 200) throw new IllegalArgumentException("Unable to fetch Codeforces profile (HTTP " + infoResponse.statusCode() + ")");
             JsonNode root = objectMapper.readTree(infoResponse.body());
@@ -128,7 +135,9 @@ public class CodingPlatformService {
             JsonNode user = root.path("result").get(0);
             result.setRating(user.path("rating").asDouble(0));
             result.setHighestRating(user.path("maxRating").asDouble(0));
-            HttpRequest ratingRequest = HttpRequest.newBuilder(URI.create("https://codeforces.com/api/user.rating?handle=" + encoded)).header("User-Agent", "StudySync/1.0").GET().build();
+            HttpRequest ratingRequest = HttpRequest.newBuilder(URI.create("https://codeforces.com/api/user.rating?handle=" + encoded))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("User-Agent", "StudySync/1.0").GET().build();
             HttpResponse<String> ratingResponse = httpClient.send(ratingRequest, HttpResponse.BodyHandlers.ofString());
             if (ratingResponse.statusCode() == 200) {
                 JsonNode ratingRoot = objectMapper.readTree(ratingResponse.body());
