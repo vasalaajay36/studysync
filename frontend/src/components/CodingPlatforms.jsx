@@ -676,7 +676,9 @@ function CodingPlatforms() {
             </div>
 
             {!editingId &&
-              formData.name === "LeetCode" && (
+              PLATFORM_OPTIONS.find(
+                (platform) => platform.name === formData.name
+              )?.automatic && (
                 <button
                   type="button"
                   className="fetch-profile-button"
@@ -684,7 +686,7 @@ function CodingPlatforms() {
                   disabled={fetchingProfile}
                 >
                   {fetchingProfile
-                    ? "Fetching LeetCode Profile..."
+                    ? `Fetching ${formData.name} Profile...`
                     : "Fetch Profile Automatically"}
                 </button>
               )}
