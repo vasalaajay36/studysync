@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Tasks from "./components/Tasks";
@@ -35,14 +36,65 @@ window.fetch = (input, init = {}) => {
   });
 };
 
+function ProtectedPage({ children }) {
+  const [status, setStatus] = useState("checking");
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/auth/me")
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("unauthenticated");
+        }
+
+        const student = await response.json();
+        if (active) {
+          localStorage.setItem("student", JSON.stringify(student));
+          setStatus("authenticated");
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem("student");
+        if (active) {
+          window.location.replace("/");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (status !== "authenticated") {
+    return (
+      <main style={{ padding: "3rem", textAlign: "center" }}>
+        Checking your StudySync session...
+      </main>
+    );
+  }
+
+  return children;
+}
+
 function App() {
   const path = window.location.pathname;
 
-  if (path === "/dashboard") return <Dashboard />;
-  if (path === "/tasks") return <Tasks />;
-  if (path === "/subjects") return <Subjects />;
-  if (path === "/study-sessions") return <StudySessions />;
-  if (path === "/coding-platforms") return <CodingPlatforms />;
+  if (path === "/dashboard") {
+    return <ProtectedPage><Dashboard /></ProtectedPage>;
+  }
+  if (path === "/tasks") {
+    return <ProtectedPage><Tasks /></ProtectedPage>;
+  }
+  if (path === "/subjects") {
+    return <ProtectedPage><Subjects /></ProtectedPage>;
+  }
+  if (path === "/study-sessions") {
+    return <ProtectedPage><StudySessions /></ProtectedPage>;
+  }
+  if (path === "/coding-platforms") {
+    return <ProtectedPage><CodingPlatforms /></ProtectedPage>;
+  }
 
   return <Login />;
 }
