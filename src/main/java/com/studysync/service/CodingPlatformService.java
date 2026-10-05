@@ -11,6 +11,8 @@ import com.studysync.exception.StudentNotFoundException;
 import com.studysync.repository.CodingPlatformRepository;
 import com.studysync.repository.StudentRepository;
 import org.springframework.stereotype.Service;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.net.URI;
@@ -95,7 +97,8 @@ public class CodingPlatformService {
         switch (name.toLowerCase()) {
             case "leetcode" -> fetchLeetCode(result, user);
             case "codeforces" -> fetchCodeforces(result, user);
-            case "codechef", "hackerrank", "cses", "spoj" -> { }
+            case "codechef" -> fetchCodeChef(result, user);
+            case "hackerrank", "cses", "spoj" -> { }
             default -> throw new IllegalArgumentException("Unsupported coding platform: " + name);
         }
         return toResponse(result);
@@ -284,6 +287,67 @@ public class CodingPlatformService {
               }
             }
             """;
+
+    private void fetchCodeChef(CodingPlatform result, String username) {
+        String url = buildProfileUrl("codechef", username);
+
+        try {
+            Document document = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (compatible; StudySync/1.0)")
+                    .referrer("https://www.google.com/")
+                    .timeout(15000)
+                    .get();
+
+            String text = document.body().text();
+
+            if (text.contains("404") || text.toLowerCase().contains("user does not exist")
+                    || !text.toLowerCase().contains("codechef")) {
+                throw new IllegalArgumentException("CodeChef username not found: " + username);
+            }
+
+            result.setUsername(username);
+            result.setProblemsSolved(extractInteger(text, "Total Problems Solved\\s*:\\s*([\\d,]+)"));
+            result.setContestsParticipated(extractInteger(text, "No\\. of Contests Participated\\s*:\\s*([\\d,]+)"));
+
+            java.util.regex.Matcher ratingMatcher = java.util.regex.Pattern
+                    .compile("CodeChef Rating\\s+(\\d+)", java.util.regex.Pattern.CASE_INSENSITIVE)
+                    .matcher(text);
+            if (ratingMatcher.find()) {
+                result.setRating(Double.parseDouble(ratingMatcher.group(1).replace(",", "")));
+            }
+
+            java.util.regex.Matcher highestMatcher = java.util.regex.Pattern
+                    .compile("Highest Rating\\s+(\\d+)", java.util.regex.Pattern.CASE_INSENSITIVE)
+                    .matcher(text);
+            if (highestMatcher.find()) {
+                result.setHighestRating(Double.parseDouble(highestMatcher.group(1).replace(",", "")));
+            } else {
+                result.setHighestRating(result.getRating());
+            }
+
+            result.setUrl(url);
+        } catch (java.net.SocketTimeoutException | HttpTimeoutException ex) {
+            throw new IllegalArgumentException(
+                    "CodeChef profile service timed out. Please try again."
+            );
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(
+                    "Unable to read CodeChef profile data. Please try again."
+            );
+        }
+    }
+
+    private int extractInteger(String text, String regex) {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile(regex, java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(text);
+
+        if (!matcher.find()) {
+            return 0;
+        }
+
+        return Integer.parseInt(matcher.group(1).replace(",", ""));
+    }
 
     private void fetchCodeforces(CodingPlatform result, String username) {
         try {
