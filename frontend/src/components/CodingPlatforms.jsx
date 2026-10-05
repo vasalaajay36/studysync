@@ -195,7 +195,7 @@ function CodingPlatforms() {
 
     if (!selectedPlatform?.automatic) {
       setErrorMessage(
-        "Automatic statistics fetching is available for LeetCode, Codeforces, and CodeChef. Other platforms can be saved with their profile URL and stats entered manually."
+        `Profile fetching is not available yet for ${selectedPlatform?.name}. The profile URL is generated automatically; enter the statistics manually and save the profile.`
       );
       return;
     }
@@ -675,10 +675,7 @@ function CodingPlatforms() {
               />
             </div>
 
-            {!editingId &&
-              PLATFORM_OPTIONS.find(
-                (platform) => platform.name === formData.name
-              )?.automatic && (
+            {!editingId && formData.name && (
                 <button
                   type="button"
                   className="fetch-profile-button"
@@ -687,7 +684,7 @@ function CodingPlatforms() {
                 >
                   {fetchingProfile
                     ? `Fetching ${formData.name} Profile...`
-                    : "Fetch Profile Automatically"}
+                    : "Fetch Profile"}
                 </button>
               )}
 
