@@ -24,7 +24,7 @@ const PLATFORM_OPTIONS = [
     profileUrl: "https://www.codechef.com/users/",
     icon: "CC",
     description: "Competitive Programming",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "SPOJ",
@@ -195,7 +195,7 @@ function CodingPlatforms() {
 
     if (!selectedPlatform?.automatic) {
       setErrorMessage(
-        "Automatic statistics fetching is available for LeetCode and Codeforces. Other platforms can be saved with their profile URL and stats entered manually."
+        "Automatic statistics fetching is available for LeetCode, Codeforces, and CodeChef. Other platforms can be saved with their profile URL and stats entered manually."
       );
       return;
     }
