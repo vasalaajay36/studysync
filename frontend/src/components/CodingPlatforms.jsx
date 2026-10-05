@@ -652,19 +652,6 @@ function CodingPlatforms() {
                   onChange={
                     handleUsernameChange
                   }
-                  onBlur={() => {
-                    const selectedPlatform = PLATFORM_OPTIONS.find(
-                      (platform) => platform.name === formData.name
-                    );
-
-                    if (
-                      !editingId &&
-                      selectedPlatform?.automatic &&
-                      formData.username.trim()
-                    ) {
-                      fetchProfile();
-                    }
-                  }}
                   placeholder="Enter username"
                   required
                 />
