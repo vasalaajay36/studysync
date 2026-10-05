@@ -15,6 +15,7 @@ function Dashboard() {
   });
 
   const [codingPlatformCount, setCodingPlatformCount] = useState(0);
+  const [codingProfiles, setCodingProfiles] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -94,11 +95,12 @@ function Dashboard() {
         totalStudyMinutes: dashboardData.totalStudyMinutes || 0,
       });
 
-      setCodingPlatformCount(
-        Array.isArray(codingPlatforms)
-          ? codingPlatforms.length
-          : 0
-      );
+      const safeCodingPlatforms = Array.isArray(codingPlatforms)
+        ? codingPlatforms
+        : [];
+
+      setCodingPlatformCount(safeCodingPlatforms.length);
+      setCodingProfiles(safeCodingPlatforms);
 
       const taskActivities = Array.isArray(tasks)
         ? tasks.map((task) => ({
@@ -450,6 +452,55 @@ function Dashboard() {
             <small>
               Connected coding platforms
             </small>
+          </button>
+        </section>
+
+        <section className="coding-progress-banner">
+          <div className="coding-progress-copy">
+            <p className="section-label">CODING MOMENTUM</p>
+            <h2>Keep your problem-solving streak alive.</h2>
+            <p>
+              Your coding profiles are connected to StudySync.
+              Refresh them from Coding Platforms whenever you want the latest statistics.
+            </p>
+          </div>
+
+          <div className="coding-progress-metrics">
+            <div>
+              <span>Profiles</span>
+              <strong>{loading ? "—" : codingPlatformCount}</strong>
+            </div>
+            <div>
+              <span>Problems Solved</span>
+              <strong>
+                {loading
+                  ? "—"
+                  : codingProfiles.reduce(
+                      (total, profile) =>
+                        total + (Number(profile.problemsSolved) || 0),
+                      0
+                    )}
+              </strong>
+            </div>
+            <div>
+              <span>Best Rating</span>
+              <strong>
+                {loading || codingProfiles.length === 0
+                  ? "—"
+                  : Math.max(
+                      ...codingProfiles.map(
+                        (profile) => Number(profile.rating) || 0
+                      )
+                    ).toFixed(0)}
+              </strong>
+            </div>
+          </div>
+
+          <button
+            className="coding-progress-button"
+            onClick={goToCodingPlatforms}
+          >
+            Open Coding Profiles →
           </button>
         </section>
 
