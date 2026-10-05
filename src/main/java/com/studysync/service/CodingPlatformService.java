@@ -219,9 +219,6 @@ public class CodingPlatformService {
             throw new IllegalArgumentException("Codeforces profile request was interrupted");
         } catch (HttpTimeoutException ex) {
             throw new IllegalArgumentException("Codeforces profile service timed out. Please try again.");
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IllegalArgumentException("Codeforces profile request was interrupted.");
         } catch (IOException ex) {
             throw new IllegalArgumentException("Unable to read Codeforces profile data: " + ex.getMessage());
         }
