@@ -47,12 +47,13 @@ public class CodingPlatformService {
 
     public CodingPlatformResponse create(CodingPlatformRequest request, Long studentId) {
         Student student = requireStudent(studentId);
-        String name = request.getName().trim();
+        String name = normalizePlatformName(request.getName());
         if (repository.existsByNameIgnoreCaseAndStudentId(name, studentId)) {
             throw new IllegalArgumentException("Coding platform already exists for this student: " + name);
         }
         CodingPlatform platform = new CodingPlatform();
         apply(platform, request);
+        platform.setName(name);
         platform.setStudent(student);
         return toResponse(repository.save(platform));
     }
@@ -60,7 +61,16 @@ public class CodingPlatformService {
     public CodingPlatformResponse update(Long id, CodingPlatformRequest request, Long studentId) {
         CodingPlatform platform = repository.findByIdAndStudentId(id, studentId)
                 .orElseThrow(() -> new CodingPlatformNotFoundException(id));
+        String name = normalizePlatformName(request.getName());
+        repository.findByIdAndStudentId(id, studentId)
+                .ifPresent(current -> {
+                    if (!current.getId().equals(id)
+                            && current.getName().equalsIgnoreCase(name)) {
+                        throw new IllegalArgumentException("Coding platform already exists for this student: " + name);
+                    }
+                });
         apply(platform, request);
+        platform.setName(name);
         return toResponse(repository.save(platform));
     }
 
@@ -71,7 +81,7 @@ public class CodingPlatformService {
     }
 
     public CodingPlatformResponse fetchProfile(String platformName, String username) {
-        String name = platformName.trim();
+        String name = normalizePlatformName(platformName);
         String user = username.trim();
         CodingPlatform result = new CodingPlatform();
         result.setName(name);
@@ -150,6 +160,22 @@ public class CodingPlatformService {
         } catch (IOException ex) {
             throw new IllegalArgumentException("Unable to read Codeforces profile data");
         }
+    }
+
+    private String normalizePlatformName(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Coding platform is required");
+        }
+
+        return switch (value.trim().toLowerCase()) {
+            case "leetcode" -> "LeetCode";
+            case "codeforces" -> "Codeforces";
+            case "codechef" -> "CodeChef";
+            case "hackerrank" -> "HackerRank";
+            case "spoj" -> "SPOJ";
+            case "cses" -> "CSES";
+            default -> throw new IllegalArgumentException("Unsupported coding platform: " + value.trim());
+        };
     }
 
     private Student requireStudent(Long studentId) {
