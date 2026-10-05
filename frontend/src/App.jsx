@@ -17,9 +17,22 @@ window.fetch = (input, init = {}) => {
     // Let fetch report malformed URLs normally.
   }
 
-  return nativeFetch(input, isApiRequest
+  const requestInit = isApiRequest
     ? { ...init, credentials: "include" }
-    : init);
+    : init;
+
+  return nativeFetch(input, requestInit).then((response) => {
+    if (
+      isApiRequest &&
+      response.status === 401 &&
+      !new URL(requestUrl, window.location.origin).pathname.startsWith("/api/auth/") &&
+      window.location.pathname !== "/"
+    ) {
+      localStorage.removeItem("student");
+      window.location.assign("/");
+    }
+    return response;
+  });
 };
 
 function App() {
