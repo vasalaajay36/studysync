@@ -57,9 +57,17 @@ public class StudentService {
     public StudentResponse updateStudent(Long id, StudentRequest request) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new StudentNotFoundException(id));
-        student.setName(request.getName());
-        student.setEmail(request.getEmail());
-        student.setCourse(request.getCourse());
+
+        String email = request.getEmail().trim().toLowerCase();
+        studentRepository.findByEmailIgnoreCase(email)
+                .filter(existing -> !existing.getId().equals(id))
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("An account with this email already exists");
+                });
+
+        student.setName(request.getName().trim());
+        student.setEmail(email);
+        student.setCourse(request.getCourse().trim());
         return toResponse(studentRepository.save(student));
     }
 
