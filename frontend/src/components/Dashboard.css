@@ -630,3 +630,121 @@
     display: none;
   }
 }
+
+/* =========================
+   CODING PROGRESS
+   ========================= */
+
+.coding-progress-banner {
+  margin-bottom: 25px;
+  padding: 25px 28px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(255,255,255,.14), transparent 30%),
+    linear-gradient(135deg, #171d4b, #4338ca 58%, #6d5dfc);
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) auto auto;
+  align-items: center;
+  gap: 28px;
+  box-shadow: 0 14px 34px rgba(67, 56, 202, .2);
+}
+
+.coding-progress-banner .section-label {
+  color: #c7d2fe;
+}
+
+.coding-progress-copy h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -.35px;
+}
+
+.coding-progress-copy p:not(.section-label) {
+  margin: 8px 0 0;
+  color: #dbe3ff;
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 540px;
+}
+
+.coding-progress-metrics {
+  display: flex;
+  gap: 10px;
+}
+
+.coding-progress-metrics div {
+  min-width: 90px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.09);
+  border-radius: 11px;
+}
+
+.coding-progress-metrics span {
+  display: block;
+  color: #c7d2fe;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.coding-progress-metrics strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+}
+
+.coding-progress-button {
+  border: none;
+  background: #ffffff;
+  color: #3730a3;
+  padding: 12px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 800;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.coding-progress-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.16);
+}
+
+@media (max-width: 1100px) {
+  .coding-progress-banner {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+
+  .coding-progress-metrics {
+    width: 100%;
+  }
+
+  .coding-progress-metrics div {
+    flex: 1;
+  }
+
+  .coding-progress-button {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 600px) {
+  .coding-progress-banner {
+    padding: 21px;
+  }
+
+  .coding-progress-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .coding-progress-metrics div:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
