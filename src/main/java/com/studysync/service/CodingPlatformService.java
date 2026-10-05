@@ -62,13 +62,9 @@ public class CodingPlatformService {
         CodingPlatform platform = repository.findByIdAndStudentId(id, studentId)
                 .orElseThrow(() -> new CodingPlatformNotFoundException(id));
         String name = normalizePlatformName(request.getName());
-        repository.findByIdAndStudentId(id, studentId)
-                .ifPresent(current -> {
-                    if (!current.getId().equals(id)
-                            && current.getName().equalsIgnoreCase(name)) {
-                        throw new IllegalArgumentException("Coding platform already exists for this student: " + name);
-                    }
-                });
+        if (repository.existsByNameIgnoreCaseAndStudentIdAndIdNot(name, studentId, id)) {
+            throw new IllegalArgumentException("Coding platform already exists for this student: " + name);
+        }
         apply(platform, request);
         platform.setName(name);
         return toResponse(repository.save(platform));
