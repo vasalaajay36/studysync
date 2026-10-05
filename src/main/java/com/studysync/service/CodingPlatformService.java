@@ -112,8 +112,11 @@ public class CodingPlatformService {
          * LeetCode API adapters and sends the required LeetCode Referer header.
          */
         try {
+            // Keep the LeetCode profile request to one GraphQL call. The
+            // public endpoint exposes solved-count data through submitStatsGlobal;
+            // using the older submitStats field can cause GraphQL schema errors.
             JsonNode profileData = fetchLeetCodeGraphQL(LEETCODE_PROFILE_QUERY, username);
-            JsonNode contestData = fetchLeetCodeGraphQL(LEETCODE_CONTEST_QUERY, username);
+            JsonNode contestData = profileData;
 
             JsonNode matchedUser = profileData.path("matchedUser");
             if (matchedUser.isMissingNode() || matchedUser.isNull()) {
@@ -124,7 +127,7 @@ public class CodingPlatformService {
             result.setGlobalRank(matchedUser.path("profile").path("ranking").asLong(0));
 
             int solved = 0;
-            JsonNode solvedStats = matchedUser.path("submitStats").path("acSubmissionNum");
+            JsonNode solvedStats = matchedUser.path("submitStatsGlobal").path("acSubmissionNum");
             if (solvedStats.isArray()) {
                 for (JsonNode stat : solvedStats) {
                     String difficulty = stat.path("difficulty").asText("");
@@ -264,7 +267,7 @@ public class CodingPlatformService {
                   ranking
                 }
                 submissionCalendar
-                submitStats {
+                submitStatsGlobal {
                   acSubmissionNum {
                     difficulty
                     count
@@ -274,18 +277,6 @@ public class CodingPlatformService {
             }
             """;
 
-    private static final String LEETCODE_CONTEST_QUERY = """
-            query getUserContestRanking($username: String!) {
-              userContestRanking(username: $username) {
-                attendedContestsCount
-                rating
-                globalRanking
-              }
-              userContestRankingHistory(username: $username) {
-                attended
-                rating
-              }
-            }
             """;
 
     private void fetchCodeChef(CodingPlatform result, String username) {
