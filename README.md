@@ -48,6 +48,7 @@ The application provides REST APIs and a browser-based frontend for managing:
 - Subjects
 - Tasks
 - Study sessions
+- Coding-platform profiles and statistics
 - Student dashboard information
 
 ## Features
@@ -90,8 +91,17 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 ### Dashboard
 
-- Retrieve dashboard information for a student
+- Retrieve dashboard information for the authenticated student
 - Aggregate academic/productivity information through a dedicated dashboard API
+
+### Coding Platform Profiles
+
+- Save, edit, and delete coding profiles
+- Store username, profile URL, solved problems, rating, ranks, contests, streak, and highest rating
+- Automatically fetch supported **LeetCode** profiles
+- Automatically fetch supported **Codeforces** profiles
+- Gracefully report expired sessions, invalid usernames, upstream API failures, and timeouts
+- Manually enter statistics for platforms without automatic API integration
 
 ## Screenshots
 
@@ -160,13 +170,19 @@ The backend is organized into controllers, services, repositories, entities, DTO
 ```text
 src/main/java/com/studysync/
 ├── controller/
+│   ├── AuthController.java
+│   ├── CodingPlatformController.java
 │   ├── DashboardController.java
 │   ├── StudentController.java
 │   ├── StudySessionController.java
 │   ├── SubjectController.java
 │   └── TaskController.java
 ├── dto/
+│   ├── AuthRequest.java
+│   ├── CodingPlatformRequest.java
+│   ├── CodingPlatformResponse.java
 │   ├── DashboardResponse.java
+│   ├── RegisterRequest.java
 │   ├── StudentRequest.java
 │   ├── StudentResponse.java
 │   ├── StudySessionRequest.java
@@ -176,6 +192,7 @@ src/main/java/com/studysync/
 │   ├── TaskRequest.java
 │   └── TaskResponse.java
 ├── entity/
+│   ├── CodingPlatform.java
 │   ├── Student.java
 │   ├── StudySession.java
 │   ├── Subject.java
@@ -274,7 +291,20 @@ Account creation is handled by `POST /api/auth/register`; the legacy `POST /api/
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/dashboard/{studentId}` | Get dashboard information for a student |
+| GET | `/api/dashboard` | Get dashboard information for the authenticated student |
+| GET | `/api/dashboard/{studentId}` | Get dashboard information when the path ID matches the authenticated student |
+
+### Coding Platforms
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/coding-platforms` | List coding profiles for the authenticated student |
+| POST | `/api/coding-platforms` | Create a coding profile |
+| PUT | `/api/coding-platforms/{id}` | Update your coding profile |
+| DELETE | `/api/coding-platforms/{id}` | Delete your coding profile |
+| POST | `/api/coding-platforms/fetch?platform=...&username=...` | Fetch supported profile statistics without saving them |
+
+Automatic profile fetching currently supports **LeetCode** and **Codeforces**.
 
 ## Local Setup
 
