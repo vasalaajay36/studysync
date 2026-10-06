@@ -44,14 +44,17 @@ public class AnalyticsService {
         LocalDate today = LocalDate.now(ZONE);
         LocalDate start = today.minusDays(period - 1L);
 
-        List<StudySession> sessions = studySessionRepository.findByStudentId(studentId).stream()
+        List<StudySession> periodSessions = studySessionRepository.findByStudentId(studentId).stream()
                 .filter(session -> session.getDate() != null
                         && !session.getDate().isBefore(start)
-                        && !session.getDate().isAfter(today)
-                        && session.isCompleted())
+                        && !session.getDate().isAfter(today))
                 .toList();
 
-        long totalMinutes = sessions.stream()
+        List<StudySession> completedSessions = periodSessions.stream()
+                .filter(StudySession::isCompleted)
+                .toList();
+
+        long totalMinutes = completedSessions.stream()
                 .mapToLong(session -> session.getDurationMinutes() == null ? 0 : session.getDurationMinutes())
                 .sum();
 
@@ -70,7 +73,7 @@ public class AnalyticsService {
             ));
         }
 
-        Map<String, Long> topicMap = sessions.stream()
+        Map<String, Long> topicMap = completedSessions.stream()
                 .filter(s -> s.getTopic() != null && !s.getTopic().isBlank())
                 .collect(Collectors.groupingBy(
                         s -> s.getTopic().trim(),
@@ -91,8 +94,8 @@ public class AnalyticsService {
         return new AnalyticsResponse(
                 period,
                 totalMinutes,
-                sessions.size(),
-                sessions.size(),
+                periodSessions.size(),
+                completedSessions.size(),
                 studyDays,
                 taskRate,
                 dailyStudy,
