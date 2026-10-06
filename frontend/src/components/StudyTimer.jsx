@@ -99,7 +99,9 @@ function showTimerNotification(timer, remainingMs, completed = false) {
   try {
     new Notification(completed ? "StudySync — Session Complete" : "StudySync — Study Timer", {
       body,
-      tag: "studysync-study-timer",
+      tag: completed ? "studysync-study-complete" : "studysync-study-timer",
+      renotify: true,
+      requireInteraction: completed,
       icon: "/favicon.ico",
     });
   } catch {
@@ -277,6 +279,9 @@ function StudyTimer() {
       }
     };
 
+    // Notifications are origin-wide, so they remain visible even when the user
+    // switches to another browser tab. The timer state is also synchronized
+    // between tabs through localStorage + BroadcastChannel above.
     const interval = window.setInterval(notify, 60_000);
     const visibilityHandler = () => {
       if (document.hidden) notify();
