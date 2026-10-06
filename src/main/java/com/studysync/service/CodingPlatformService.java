@@ -380,7 +380,7 @@ public class CodingPlatformService {
                 throw new IllegalArgumentException("Codeforces username not found: " + username);
             }
             JsonNode user = root.path("result").get(0);
-            result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
+            result.setRankTitle(user.path("rank").asText(""));\n            result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
             result.setHighestRating(roundToTwoDecimals(user.path("maxRating").asDouble(0)));
 
             // Codeforces user.info provides the official rank title (for example
@@ -549,6 +549,7 @@ public class CodingPlatformService {
         platform.setProblemsSolved(request.getProblemsSolved() == null ? 0 : request.getProblemsSolved());
         platform.setRating(request.getRating() == null ? 0D : request.getRating());
         platform.setGlobalRank(request.getGlobalRank() == null ? 0L : request.getGlobalRank());
+        platform.setRankTitle(request.getRankTitle() == null ? "" : request.getRankTitle().trim());
         platform.setContestsParticipated(request.getContestsParticipated() == null ? 0 : request.getContestsParticipated());
         platform.setHighestRating(request.getHighestRating() == null ? 0D : request.getHighestRating());
         platform.setStreak(request.getStreak() == null ? 0 : request.getStreak());
@@ -556,6 +557,6 @@ public class CodingPlatformService {
     }
 
     private CodingPlatformResponse toResponse(CodingPlatform p) {
-        return new CodingPlatformResponse(p.getId(), p.getName(), p.getUrl(), p.getUsername(), p.getProblemsSolved(), p.getRating(), p.getGlobalRank(), p.getContestsParticipated(), p.getHighestRating(), p.getStreak(), p.getPlatformRank(), p.getStudent() == null ? null : p.getStudent().getId());
+        return new CodingPlatformResponse(p.getId(), p.getName(), p.getUrl(), p.getUsername(), p.getProblemsSolved(), p.getRating(), p.getGlobalRank(), p.getRankTitle(), p.getContestsParticipated(), p.getHighestRating(), p.getStreak(), p.getPlatformRank(), p.getStudent() == null ? null : p.getStudent().getId());
     }
 }
