@@ -221,9 +221,12 @@ function StudySessions() {
   const startTimerForSession = async (session) => {
     await requestTimerNotificationPermission();
 
+    const totalMinutes = Math.max(1, Number(session.durationMinutes) || 1);
+    const firstBlockMinutes = Math.min(FOCUS_BLOCK_MINUTES, totalMinutes);
+
     setActiveSessionId(session.id);
     setTimerMode("focus");
-    setTimerSeconds(Math.max(1, Number(session.durationMinutes)) * 60);
+    setTimerSeconds(firstBlockMinutes * 60);
     setTimerRunning(true);
     setFocusBlocks(0);
     setElapsedFocusMinutes(0);
@@ -247,16 +250,25 @@ function StudySessions() {
     if (timerMode === "break") {
       notifyTimer("Break finished", "Your break is over. Ready for another focused block?");
       setTimerMode("focus");
-      setTimerSeconds(Math.min(FOCUS_BLOCK_MINUTES * 60, Math.max(60, (activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) * 60)));
+      const remainingMinutes = Math.max(
+        1,
+        (activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) - elapsedFocusMinutes
+      );
+      setTimerSeconds(Math.min(FOCUS_BLOCK_MINUTES, remainingMinutes) * 60);
       setBreakSeconds(0);
       return;
     }
 
     const nextBlocks = focusBlocks + 1;
-    const nextElapsed = elapsedFocusMinutes + Math.min(
-      FOCUS_BLOCK_MINUTES,
-      Math.ceil(((activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) * 60) / 60)
+    const remainingMinutes = Math.max(
+      0,
+      (activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) - elapsedFocusMinutes
     );
+    const completedBlockMinutes = Math.min(
+      FOCUS_BLOCK_MINUTES,
+      remainingMinutes
+    );
+    const nextElapsed = elapsedFocusMinutes + completedBlockMinutes;
 
     setFocusBlocks(nextBlocks);
     setElapsedFocusMinutes(nextElapsed);
@@ -291,10 +303,11 @@ function StudySessions() {
 
     setTimerRunning(false);
     setTimerMode("focus");
-    setTimerSeconds(Math.min(
-      FOCUS_BLOCK_MINUTES * 60,
-      Math.max(60, ((activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) - elapsedFocusMinutes) * 60)
-    ));
+    const remainingMinutes = Math.max(
+      1,
+      (activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) - elapsedFocusMinutes
+    );
+    setTimerSeconds(Math.min(FOCUS_BLOCK_MINUTES, remainingMinutes) * 60);
     setBreakSeconds(0);
   };
 
