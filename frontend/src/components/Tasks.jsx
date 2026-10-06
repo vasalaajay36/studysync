@@ -270,6 +270,10 @@ function Tasks() {
             Coding Platforms
           </button>
 
+          <button onClick={goToAnalytics}>
+            Study Analytics
+          </button>
+
         </nav>
 
         <button
