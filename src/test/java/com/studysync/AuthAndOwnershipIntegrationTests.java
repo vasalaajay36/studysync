@@ -7,6 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockHttpSession;
+
+import static org.springframework.test.util.AssertionErrors.fail;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,12 +60,12 @@ class AuthAndOwnershipIntegrationTests {
                 .andExpect(jsonPath("$.email").value("auth-test@example.com"))
                 .andReturn();
 
-        var session = result.getRequest().getSession(false);
+        MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
         if (session == null) {
-            throw new AssertionError("Registration did not create an HTTP session");
+            fail("Registration did not create an HTTP session");
         }
 
-        mockMvc.perform(get("/api/auth/me").session((org.springframework.mock.web.MockHttpSession) session))
+        mockMvc.perform(get("/api/auth/me").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Student"))
                 .andExpect(jsonPath("$.email").value("auth-test@example.com"));
@@ -125,8 +128,10 @@ class AuthAndOwnershipIntegrationTests {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var firstSession = (org.springframework.mock.web.MockHttpSession)
-                firstResult.getRequest().getSession(false);
+        MockHttpSession firstSession = (MockHttpSession) firstResult.getRequest().getSession(false);
+        if (firstSession == null) {
+            fail("First registration did not create an HTTP session");
+        }
 
         var task = """
                 {
@@ -146,12 +151,10 @@ class AuthAndOwnershipIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        int taskId = com.fasterxml.jackson.databind.json.JsonMapper
-                .builder()
-                .build()
-                .readTree(taskResult.getResponse().getContentAsString())
-                .get("id")
-                .asInt();
+        String taskResponse = taskResult.getResponse().getContentAsString();
+        int taskId = Integer.parseInt(
+                taskResponse.replaceAll(".*\"id\"\\s*:\\s*(\\d+).*", "$1")
+        );
 
         var secondResult = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -159,8 +162,10 @@ class AuthAndOwnershipIntegrationTests {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var secondSession = (org.springframework.mock.web.MockHttpSession)
-                secondResult.getRequest().getSession(false);
+        MockHttpSession secondSession = (MockHttpSession) secondResult.getRequest().getSession(false);
+        if (secondSession == null) {
+            fail("Second registration did not create an HTTP session");
+        }
 
         mockMvc.perform(get("/api/tasks/" + taskId).session(secondSession))
                 .andExpect(status().isForbidden());
