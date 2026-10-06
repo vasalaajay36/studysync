@@ -107,6 +107,108 @@ function showTimerNotification(timer, remainingMs, completed = false) {
   }
 }
 
+async function openFloatingTimer() {
+  if (!("documentPictureInPicture" in document)) {
+    alert("Floating timer is not supported by this browser. Enable notifications instead.");
+    return;
+  }
+
+  if (documentPictureInPicture.window) {
+    documentPictureInPicture.window.focus();
+    return;
+  }
+
+  const timerWindow = await documentPictureInPicture.requestWindow({
+    width: 330,
+    height: 190,
+  });
+
+  const style = timerWindow.document.createElement("style");
+  style.textContent = `
+    body {
+      margin: 0;
+      padding: 18px;
+      background: #121d40;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .label { font-size: 10px; letter-spacing: 1.2px; color: #aeb7d8; font-weight: 700; }
+    .topic { display: block; margin-top: 5px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .time { margin: 15px 0 10px; font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .progress { height: 6px; background: #2d385d; border-radius: 99px; overflow: hidden; }
+    .progress span { display: block; height: 100%; background: #7357f5; }
+    .actions { display: flex; gap: 8px; margin-top: 13px; }
+    button { flex: 1; border: 0; border-radius: 8px; padding: 8px; font-weight: 700; cursor: pointer; }
+  `;
+  timerWindow.document.head.appendChild(style);
+
+  const root = timerWindow.document.createElement("div");
+  root.innerHTML = `
+    <span class="label">STUDYSYNC FOCUS TIMER</span>
+    <span class="topic"></span>
+    <div class="time">00:00</div>
+    <div class="progress"><span></span></div>
+    <div class="actions">
+      <button class="pause">Pause</button>
+      <button class="stop">Stop</button>
+    </div>
+  `;
+  timerWindow.document.body.appendChild(root);
+
+  const channel = "BroadcastChannel" in window
+    ? new BroadcastChannel(CHANNEL_NAME)
+    : null;
+
+  const render = () => {
+    const current = readTimer();
+    if (!current) {
+      timerWindow.close();
+      return;
+    }
+
+    const remaining = current.status === "paused"
+      ? Number(current.remainingMs || 0)
+      : Math.max(0, Number(current.endAt) - Date.now());
+
+    root.querySelector(".topic").textContent = current.topic;
+    root.querySelector(".time").textContent = formatTime(remaining);
+    root.querySelector(".progress span").style.width =
+      `${Math.max(0, Math.min(100, remaining / (Number(current.durationMinutes) * 60 * 1000) * 100))}%`;
+    root.querySelector(".pause").textContent =
+      current.status === "paused" ? "Resume" : "Pause";
+
+    if (remaining <= 0) {
+      timerWindow.close();
+    }
+  };
+
+  const interval = timerWindow.setInterval(render, 250);
+  render();
+
+  root.querySelector(".pause").onclick = () => {
+    const current = readTimer();
+    if (!current) return;
+
+    const next = current.status === "paused"
+      ? { ...current, status: "running", endAt: Date.now() + Number(current.remainingMs) }
+      : { ...current, status: "paused", remainingMs: Math.max(0, Number(current.endAt) - Date.now()) };
+
+    broadcast(next);
+    render();
+  };
+
+  root.querySelector(".stop").onclick = () => {
+    broadcast(null);
+    timerWindow.close();
+  };
+
+  channel?.addEventListener("message", render);
+  timerWindow.addEventListener("pagehide", () => {
+    timerWindow.clearInterval(interval);
+    channel?.close();
+  });
+}
+
 function StudyTimer() {
   const [timer, setTimer] = useState(readTimer);
   const [now, setNow] = useState(Date.now());
