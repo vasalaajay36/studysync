@@ -346,6 +346,7 @@ function StudyTimer() {
       </div>
 
       <div className="study-timer-actions">
+        <button onClick={openFloatingTimer}>Pop out</button>
         {timer.status === "running" ? (
           <button onClick={pauseTimer}>Pause</button>
         ) : (
