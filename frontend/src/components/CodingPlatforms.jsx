@@ -507,7 +507,6 @@ function CodingPlatforms() {
         <nav className="coding-nav" aria-label="Main navigation">
           <button onClick={() => goTo("/dashboard")}>Dashboard</button>
           <button onClick={() => goTo("/tasks")}>Tasks</button>
-          <button onClick={() => goTo("/subjects")}>Subjects</button>
           <button onClick={() => goTo("/study-sessions")}>Study Sessions</button>
           <button className="active" onClick={() => goTo("/coding-platforms")}>
             Coding Platforms
