@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./StudySessions.css";
+import { requestTimerNotificationPermission, startStudyTimer } from "./StudyTimer";
 
 function StudySessions() {
   const studentData = localStorage.getItem("student");
@@ -55,8 +56,10 @@ function StudySessions() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    await requestTimerNotificationPermission();
 
     const sessionData = {
       topic: formData.topic,
@@ -82,6 +85,8 @@ function StudySessions() {
         return response.json();
       })
       .then((newSession) => {
+        startStudyTimer(newSession);
+
         setSessions((currentSessions) => [
           ...currentSessions,
           newSession,
