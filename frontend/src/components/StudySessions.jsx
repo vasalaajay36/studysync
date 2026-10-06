@@ -35,6 +35,7 @@ function StudySessions() {
   const [focusBlocks, setFocusBlocks] = useState(0);
   const [elapsedFocusMinutes, setElapsedFocusMinutes] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
+  const [showTimerPopup, setShowTimerPopup] = useState(false);
 
   useEffect(() => {
     if (!student) {
@@ -231,6 +232,7 @@ function StudySessions() {
     setFocusBlocks(0);
     setElapsedFocusMinutes(0);
     setBreakSeconds(0);
+    setShowTimerPopup(true);
     setErrorMessage("");
   };
 
@@ -242,6 +244,7 @@ function StudySessions() {
     setFocusBlocks(0);
     setElapsedFocusMinutes(0);
     setBreakSeconds(0);
+    setShowTimerPopup(false);
   };
 
   const finishTimerPhase = () => {
@@ -385,6 +388,56 @@ function StudySessions() {
         </header>
 
         {errorMessage && <div className="study-error">{errorMessage}</div>}
+
+        {activeSession && showTimerPopup && (
+          <div className="timer-popup-overlay" role="dialog" aria-modal="true" aria-label="Study timer">
+            <div className={"timer-popup " + timerMode}>
+              <div className="timer-popup-header">
+                <div>
+                  <span className="focus-label">
+                    {timerMode === "focus" && "FOCUS BLOCK"}
+                    {timerMode === "break" && "BREAK"}
+                    {timerMode === "complete" && "SESSION COMPLETE"}
+                  </span>
+                  <h2>{activeSession.topic}</h2>
+                </div>
+                <button
+                  className="timer-popup-close"
+                  onClick={() => setShowTimerPopup(false)}
+                  aria-label="Minimize timer"
+                >
+                  −
+                </button>
+              </div>
+
+              <div className="timer-popup-time">{formatTimer(timerSeconds)}</div>
+
+              <div className="timer-popup-status">
+                {timerMode === "focus" && (timerRunning ? "Timer is running" : "Timer is paused")}
+                {timerMode === "break" && (timerRunning ? "Take your break" : "Break is paused")}
+                {timerMode === "complete" && "Study session complete"}
+              </div>
+
+              <div className="timer-popup-actions">
+                {timerMode !== "complete" && (
+                  <button className="timer-primary" onClick={toggleTimer}>
+                    {timerRunning ? "Pause" : timerMode === "break" ? "Resume Break" : "Start"}
+                  </button>
+                )}
+
+                {timerMode === "break" && (
+                  <button className="timer-secondary" onClick={skipBreak}>
+                    Skip Break
+                  </button>
+                )}
+
+                <button className="timer-secondary" onClick={stopTimer}>
+                  Stop
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeSession && (
           <section className={`focus-panel ${timerMode}`}>
