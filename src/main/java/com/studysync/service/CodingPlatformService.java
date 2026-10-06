@@ -203,6 +203,8 @@ public class CodingPlatformService {
         )
                 .timeout(Duration.ofSeconds(15))
                 .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("Origin", "https://leetcode.com")
                 .header("Referer", "https://leetcode.com/")
                 .header("User-Agent", "StudySync/1.0")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -223,12 +225,22 @@ public class CodingPlatformService {
 
         JsonNode payload = objectMapper.readTree(response.body());
         if (payload.has("errors")) {
-            throw new IllegalArgumentException(
-                    "LeetCode rejected the profile request"
-            );
+            JsonNode firstError = payload.path("errors").isArray()
+                    && payload.path("errors").size() > 0
+                    ? payload.path("errors").get(0)
+                    : null;
+            String message = firstError == null
+                    ? "LeetCode rejected the profile request"
+                    : firstError.path("message").asText("LeetCode rejected the profile request");
+            throw new IllegalArgumentException("LeetCode: " + message);
         }
 
-        return payload.path("data");
+        JsonNode data = payload.path("data");
+        if (data.isMissingNode() || data.isNull()) {
+            throw new IllegalArgumentException("LeetCode returned an empty profile response");
+        }
+
+        return data;
     }
 
     private int calculateLeetCodeStreak(String calendarText) {
@@ -284,8 +296,6 @@ public class CodingPlatformService {
                 rating
               }
             }
-            """;
-
             """;
 
     private void fetchCodeChef(CodingPlatform result, String username) {
