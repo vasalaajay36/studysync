@@ -306,6 +306,16 @@ Account creation is handled by `POST /api/auth/register`; the legacy `POST /api/
 
 Automatic profile fetching currently supports **LeetCode** and **Codeforces**.
 
+### Study Timer
+
+- Creating a study session automatically starts its focus timer.
+- The timer is persisted in browser storage, so changing StudySync pages or browser tabs does not reset it.
+- The timer is synchronized across open StudySync tabs.
+- Use **Pause**, **Resume**, and **Stop** from the floating timer.
+- Use **Pop out** in supported Chrome versions to keep the timer in a floating Picture-in-Picture window above other work.
+- Browser notifications can show remaining time while you work in another tab and notify you when the session finishes.
+- The timer uses the session's actual duration and marks the study session completed when the countdown reaches zero.
+
 ## Local Setup
 
 ### Prerequisites
