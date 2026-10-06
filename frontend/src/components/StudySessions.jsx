@@ -8,6 +8,8 @@ import {
   formatTimer,
   notifyTimer,
   requestTimerNotificationPermission,
+  startStudyTimer,
+  stopStudyTimer,
 } from "./StudyTimer.jsx";
 
 const EMPTY_FORM = {
@@ -225,6 +227,11 @@ function StudySessions() {
     const totalMinutes = Math.max(1, Number(session.durationMinutes) || 1);
     const firstBlockMinutes = Math.min(FOCUS_BLOCK_MINUTES, totalMinutes);
 
+    startStudyTimer({
+      ...session,
+      durationMinutes: totalMinutes,
+    });
+
     setActiveSessionId(session.id);
     setTimerMode("focus");
     setTimerSeconds(firstBlockMinutes * 60);
@@ -237,6 +244,7 @@ function StudySessions() {
   };
 
   const stopTimer = () => {
+    stopStudyTimer();
     setTimerRunning(false);
     setActiveSessionId(null);
     setTimerSeconds(0);
