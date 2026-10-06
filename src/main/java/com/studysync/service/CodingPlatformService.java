@@ -380,7 +380,8 @@ public class CodingPlatformService {
                 throw new IllegalArgumentException("Codeforces username not found: " + username);
             }
             JsonNode user = root.path("result").get(0);
-            result.setRankTitle(user.path("rank").asText(""));\n            result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
+            result.setRankTitle(user.path("rank").asText(""));
+            result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
             result.setHighestRating(roundToTwoDecimals(user.path("maxRating").asDouble(0)));
 
             // Codeforces user.info provides the official rank title (for example
