@@ -616,21 +616,7 @@ function Dashboard() {
               </span>
             </button>
 
-            <button
-              className="action-button"
-              onClick={goToSubjects}
-            >
-              <span>
-                <strong>Manage Subjects</strong>
-                <small>
-                  Organize your subjects
-                </small>
-              </span>
 
-              <span className="arrow">
-                →
-              </span>
-            </button>
 
             <button
               className="action-button"
