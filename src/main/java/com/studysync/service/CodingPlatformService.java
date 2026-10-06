@@ -383,26 +383,116 @@ public class CodingPlatformService {
             result.setRating(roundToTwoDecimals(user.path("rating").asDouble(0)));
             result.setHighestRating(roundToTwoDecimals(user.path("maxRating").asDouble(0)));
 
-            // Codeforces documents a maximum of one anonymous API call every
-            // two seconds. Wait before the second request instead of triggering
-            // "Call limit exceeded" on the rating endpoint.
+            // Codeforces user.info provides the official rank title (for example
+            // "expert"), but it does not provide a numeric global rank. We leave
+            // globalRank unset rather than inventing a number.
+            result.setGlobalRank(0L);
+
+            // Codeforces permits anonymous API requests but rate-limits calls.
+            // Keep a gap between each request so profile sync does not return
+            // "Call limit exceeded".
             Thread.sleep(2100);
 
-            HttpRequest ratingRequest = HttpRequest.newBuilder(URI.create("https://codeforces.com/api/user.rating?handle=" + encoded))
+            HttpRequest ratingRequest = HttpRequest.newBuilder(
+                    URI.create("https://codeforces.com/api/user.rating?handle=" + encoded)
+            )
                     .timeout(Duration.ofSeconds(15))
-                    .header("User-Agent", "StudySync/1.0").GET().build();
-            HttpResponse<String> ratingResponse = httpClient.send(ratingRequest, HttpResponse.BodyHandlers.ofString());
-            if (ratingResponse.statusCode() == 200) {
-                JsonNode ratingRoot = objectMapper.readTree(ratingResponse.body());
-                if ("OK".equals(ratingRoot.path("status").asText()) && ratingRoot.path("result").isArray()) {
-                    result.setContestsParticipated(ratingRoot.path("result").size());
-                } else if ("FAILED".equals(ratingRoot.path("status").asText())) {
-                    String comment = ratingRoot.path("comment").asText("");
-                    if (!comment.isBlank() && !comment.toLowerCase().contains("call limit")) {
-                        throw new IllegalArgumentException("Codeforces: " + comment);
+                    .header("User-Agent", "StudySync/1.0")
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> ratingResponse =
+                    httpClient.send(ratingRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (ratingResponse.statusCode() != 200) {
+                throw new IllegalArgumentException(
+                        "Unable to fetch Codeforces contest history (HTTP "
+                                + ratingResponse.statusCode() + ")"
+                );
+            }
+
+            JsonNode ratingRoot = objectMapper.readTree(ratingResponse.body());
+            if (!"OK".equals(ratingRoot.path("status").asText())) {
+                throw new IllegalArgumentException(
+                        "Codeforces: "
+                                + ratingRoot.path("comment")
+                                .asText("Unable to fetch contest history")
+                );
+            }
+
+            JsonNode contests = ratingRoot.path("result");
+            if (contests.isArray()) {
+                result.setContestsParticipated(contests.size());
+            }
+
+            Thread.sleep(2100);
+
+            // user.status contains the user's public submissions. Count unique
+            // problems with at least one accepted submission rather than counting
+            // submissions, because a user may submit the same problem many times.
+            HttpRequest submissionsRequest = HttpRequest.newBuilder(
+                    URI.create(
+                            "https://codeforces.com/api/user.status?handle="
+                                    + encoded
+                                    + "&from=1&count=10000"
+                    )
+            )
+                    .timeout(Duration.ofSeconds(20))
+                    .header("User-Agent", "StudySync/1.0")
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> submissionsResponse =
+                    httpClient.send(
+                            submissionsRequest,
+                            HttpResponse.BodyHandlers.ofString()
+                    );
+
+            if (submissionsResponse.statusCode() != 200) {
+                throw new IllegalArgumentException(
+                        "Unable to fetch Codeforces submissions (HTTP "
+                                + submissionsResponse.statusCode() + ")"
+                );
+            }
+
+            JsonNode submissionsRoot =
+                    objectMapper.readTree(submissionsResponse.body());
+
+            if (!"OK".equals(submissionsRoot.path("status").asText())) {
+                throw new IllegalArgumentException(
+                        "Codeforces: "
+                                + submissionsRoot.path("comment")
+                                .asText("Unable to fetch submission history")
+                );
+            }
+
+            java.util.Set<String> solvedProblems =
+                    new java.util.HashSet<>();
+
+            JsonNode submissions = submissionsRoot.path("result");
+            if (submissions.isArray()) {
+                for (JsonNode submission : submissions) {
+                    if (!"OK".equalsIgnoreCase(
+                            submission.path("verdict").asText()
+                    )) {
+                        continue;
+                    }
+
+                    JsonNode problem = submission.path("problem");
+                    String contestId =
+                            problem.path("contestId").asText("");
+                    String index =
+                            problem.path("index").asText("");
+
+                    if (!contestId.isBlank() && !index.isBlank()) {
+                        solvedProblems.add(contestId + "-" + index);
                     }
                 }
             }
+
+            result.setProblemsSolved(solvedProblems.size());
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalArgumentException("Codeforces profile request was interrupted");
