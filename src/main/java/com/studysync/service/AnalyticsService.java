@@ -58,7 +58,7 @@ public class AnalyticsService {
                 .mapToLong(session -> session.getDurationMinutes() == null ? 0 : session.getDurationMinutes())
                 .sum();
 
-        Map<LocalDate, Long> dailyMap = sessions.stream()
+        Map<LocalDate, Long> dailyMap = completedSessions.stream()
                 .collect(Collectors.groupingBy(
                         StudySession::getDate,
                         Collectors.summingLong(s -> s.getDurationMinutes() == null ? 0 : s.getDurationMinutes())
