@@ -1,6 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./StudySessions.css";
-import { requestTimerNotificationPermission, startStudyTimer } from "./StudyTimer";
+import {
+  BLOCKS_BEFORE_LONG_BREAK,
+  FOCUS_BLOCK_MINUTES,
+  LONG_BREAK_MINUTES,
+  SHORT_BREAK_MINUTES,
+  formatTimer,
+  notifyTimer,
+  requestTimerNotificationPermission,
+} from "./StudyTimer";
+
+const EMPTY_FORM = {
+  topic: "",
+  description: "",
+  studyDate: "",
+  durationMinutes: "",
+};
 
 function StudySessions() {
   const studentData = localStorage.getItem("student");
@@ -9,13 +24,17 @@ function StudySessions() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [formData, setFormData] = useState({
-    topic: "",
-    description: "",
-    studyDate: "",
-    durationMinutes: "",
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [timerMode, setTimerMode] = useState("focus");
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [focusBlocks, setFocusBlocks] = useState(0);
+  const [elapsedFocusMinutes, setElapsedFocusMinutes] = useState(0);
+  const [breakSeconds, setBreakSeconds] = useState(0);
 
   useEffect(() => {
     if (!student) {
@@ -24,90 +43,115 @@ function StudySessions() {
     }
 
     loadSessions();
+    requestTimerNotificationPermission();
   }, []);
 
-  const loadSessions = () => {
-    fetch(
-      `/api/study-sessions/student/${student.id}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to load study sessions");
-        }
+  useEffect(() => {
+    if (!timerRunning) return undefined;
 
-        return response.json();
-      })
-      .then((data) => {
-        setSessions(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Study session loading error:", error);
-        setLoading(false);
+    const interval = window.setInterval(() => {
+      setTimerSeconds((current) => {
+        if (current <= 1) {
+          window.clearInterval(interval);
+          finishTimerPhase();
+          return 0;
+        }
+        return current - 1;
       });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [timerRunning]);
+
+  const activeSession = useMemo(
+    () => sessions.find((session) => session.id === activeSessionId) || null,
+    [sessions, activeSessionId]
+  );
+
+  const loadSessions = async () => {
+    try {
+      const response = await fetch("/api/study-sessions", {
+        credentials: "include",
+      });
+
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { message: text };
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          response.status === 401
+            ? "Your session has expired. Please sign in again."
+            : data?.message || `Unable to load study sessions (HTTP ${response.status}).`
+        );
+      }
+
+      setSessions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Study session loading error:", error);
+      setErrorMessage(error.message || "Unable to load study sessions.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
-    setFormData({
-      ...formData,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
-    });
+    }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    await requestTimerNotificationPermission();
-
     const sessionData = {
-      topic: formData.topic,
-      description: formData.description,
+      topic: formData.topic.trim(),
+      description: formData.description.trim(),
       studyDate: formData.studyDate,
       durationMinutes: Number(formData.durationMinutes),
       completed: false,
       studentId: student.id,
     };
 
-    fetch("/api/study-sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sessionData),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to create study session");
-        }
-
-        return response.json();
-      })
-      .then((newSession) => {
-        startStudyTimer(newSession);
-
-        setSessions((currentSessions) => [
-          ...currentSessions,
-          newSession,
-        ]);
-
-        setFormData({
-          topic: "",
-          description: "",
-          studyDate: "",
-          durationMinutes: "",
-        });
-
-        setShowForm(false);
-      })
-      .catch((error) => {
-        console.error("Study session creation error:", error);
-        alert("Unable to create study session");
+    try {
+      const response = await fetch("/api/study-sessions", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sessionData),
       });
+
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { message: text };
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.message || `Unable to create study session (HTTP ${response.status}).`);
+      }
+
+      setSessions((current) => [...current, data]);
+      setFormData(EMPTY_FORM);
+      setShowForm(false);
+      setErrorMessage("");
+    } catch (error) {
+      console.error("Study session creation error:", error);
+      setErrorMessage(error.message || "Unable to create study session.");
+    }
   };
 
-  const toggleSessionStatus = (session) => {
+  const toggleSessionStatus = async (session) => {
     const updatedSession = {
       topic: session.topic,
       description: session.description,
@@ -117,68 +161,141 @@ function StudySessions() {
       studentId: student.id,
     };
 
-    fetch(
-      `/api/study-sessions/${session.id}`,
-      {
+    try {
+      const response = await fetch(`/api/study-sessions/${session.id}`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedSession),
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to update study session");
-        }
-
-        return response.json();
-      })
-      .then((updatedSessionFromServer) => {
-        setSessions((currentSessions) =>
-          currentSessions.map((currentSession) =>
-            currentSession.id === updatedSessionFromServer.id
-              ? updatedSessionFromServer
-              : currentSession
-          )
-        );
-      })
-      .catch((error) => {
-        console.error("Study session update error:", error);
-        alert("Unable to update study session");
       });
+
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { message: text };
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Unable to update study session");
+      }
+
+      setSessions((current) =>
+        current.map((item) => (item.id === data.id ? data : item))
+      );
+    } catch (error) {
+      console.error("Study session update error:", error);
+      setErrorMessage(error.message || "Unable to update study session.");
+    }
   };
 
-  const deleteSession = (sessionId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this study session?"
-    );
-
-    if (!confirmed) {
+  const deleteSession = async (sessionId) => {
+    if (!window.confirm("Are you sure you want to delete this study session?")) {
       return;
     }
 
-    fetch(
-      `/api/study-sessions/${sessionId}`,
-      {
+    try {
+      const response = await fetch(`/api/study-sessions/${sessionId}`, {
         method: "DELETE",
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to delete study session");
-        }
-
-        setSessions((currentSessions) =>
-          currentSessions.filter(
-            (session) => session.id !== sessionId
-          )
-        );
-      })
-      .catch((error) => {
-        console.error("Study session deletion error:", error);
-        alert("Unable to delete study session");
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        throw new Error("Unable to delete study session");
+      }
+
+      if (activeSessionId === sessionId) {
+        stopTimer();
+      }
+
+      setSessions((current) => current.filter((session) => session.id !== sessionId));
+    } catch (error) {
+      console.error("Study session deletion error:", error);
+      setErrorMessage(error.message || "Unable to delete study session.");
+    }
+  };
+
+  const startTimerForSession = async (session) => {
+    await requestTimerNotificationPermission();
+
+    setActiveSessionId(session.id);
+    setTimerMode("focus");
+    setTimerSeconds(Math.max(1, Number(session.durationMinutes)) * 60);
+    setTimerRunning(true);
+    setFocusBlocks(0);
+    setElapsedFocusMinutes(0);
+    setBreakSeconds(0);
+    setErrorMessage("");
+  };
+
+  const stopTimer = () => {
+    setTimerRunning(false);
+    setActiveSessionId(null);
+    setTimerSeconds(0);
+    setTimerMode("focus");
+    setFocusBlocks(0);
+    setElapsedFocusMinutes(0);
+    setBreakSeconds(0);
+  };
+
+  const finishTimerPhase = () => {
+    setTimerRunning(false);
+
+    if (timerMode === "break") {
+      notifyTimer("Break finished", "Your break is over. Ready for another focused block?");
+      setTimerMode("focus");
+      setTimerSeconds(Math.min(FOCUS_BLOCK_MINUTES * 60, Math.max(60, (activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) * 60)));
+      setBreakSeconds(0);
+      return;
+    }
+
+    const nextBlocks = focusBlocks + 1;
+    const nextElapsed = elapsedFocusMinutes + Math.min(
+      FOCUS_BLOCK_MINUTES,
+      Math.ceil(((activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) * 60) / 60)
+    );
+
+    setFocusBlocks(nextBlocks);
+    setElapsedFocusMinutes(nextElapsed);
+
+    if (activeSession && nextElapsed >= activeSession.durationMinutes) {
+      notifyTimer("Study session complete", `Great work on ${activeSession.topic}!`);
+      setTimerSeconds(0);
+      setTimerMode("complete");
+      toggleSessionStatus(activeSession);
+      return;
+    }
+
+    const longBreak = nextBlocks % BLOCKS_BEFORE_LONG_BREAK === 0;
+    const breakMinutes = longBreak ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES;
+
+    setTimerMode("break");
+    setBreakSeconds(breakMinutes * 60);
+    setTimerSeconds(breakMinutes * 60);
+    notifyTimer(
+      longBreak ? "Long break time" : "Break time",
+      `${longBreak ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES} minutes. Step away and recharge.`
+    );
+  };
+
+  const toggleTimer = () => {
+    if (!activeSession || timerMode === "complete") return;
+    setTimerRunning((running) => !running);
+  };
+
+  const skipBreak = () => {
+    if (timerMode !== "break") return;
+
+    setTimerRunning(false);
+    setTimerMode("focus");
+    setTimerSeconds(Math.min(
+      FOCUS_BLOCK_MINUTES * 60,
+      Math.max(60, ((activeSession?.durationMinutes || FOCUS_BLOCK_MINUTES) - elapsedFocusMinutes) * 60)
+    ));
+    setBreakSeconds(0);
   };
 
   const goToDashboard = () => {
@@ -189,12 +306,20 @@ function StudySessions() {
     window.location.href = "/tasks";
   };
 
-  const goToSubjects = () => { window.location.href = "/subjects"; };
-  const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
+  const goToSubjects = () => {
+    window.location.href = "/subjects";
+  };
+
+  const goToCodingPlatforms = () => {
+    window.location.href = "/coding-platforms";
+  };
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
     } catch (error) {
       console.error("Logout request failed:", error);
     } finally {
@@ -203,96 +328,135 @@ function StudySessions() {
     }
   };
 
-  if (!student) {
-    return null;
-  }
+  if (!student) return null;
 
   return (
     <div className="study-sessions-page">
-
       <aside className="study-sidebar">
-
         <h2 className="study-logo">
           Study<span>Sync</span>
         </h2>
 
         <nav className="study-nav">
-
-          <button onClick={goToDashboard}>
-            Dashboard
-          </button>
-
-          <button onClick={goToTasks}>
-            Tasks
-          </button>
-
-          <button onClick={goToSubjects}>
-            Subjects
-          </button>
-
-          <button className="active">
-            Study Sessions
-          </button>
-
-          <button onClick={goToCodingPlatforms}>
-            Coding Platforms
-          </button>
-
+          <button onClick={goToDashboard}>Dashboard</button>
+          <button onClick={goToTasks}>Tasks</button>
+          <button onClick={goToSubjects}>Subjects</button>
+          <button className="active">Study Sessions</button>
+          <button onClick={goToCodingPlatforms}>Coding Platforms</button>
         </nav>
 
-        <button
-          className="logout-study-button"
-          onClick={logout}
-        >
+        <button className="logout-study-button" onClick={logout}>
           Logout
         </button>
-
       </aside>
 
       <main className="study-main">
-
         <header className="study-header">
-
           <div>
+            <div className="study-eyebrow">FOCUS MODE</div>
             <h1>Study Sessions</h1>
-
-            <p>
-              Track your study time and progress
-            </p>
+            <p>Plan your study time, focus in blocks, and take breaks before burnout.</p>
           </div>
 
           <div className="study-header-buttons">
-
             <button
               className="add-session-button"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => setShowForm((value) => !value)}
             >
               {showForm ? "Cancel" : "+ Add Session"}
             </button>
-
-            <button
-              className="back-study-button"
-              onClick={goToDashboard}
-            >
+            <button className="back-study-button" onClick={goToDashboard}>
               Dashboard
             </button>
-
           </div>
-
         </header>
 
-        {showForm && (
-          <form
-            className="study-form"
-            onSubmit={handleSubmit}
-          >
+        {errorMessage && <div className="study-error">{errorMessage}</div>}
 
-            <h2>Add Study Session</h2>
+        {activeSession && (
+          <section className={`focus-panel ${timerMode}`}>
+            <div className="focus-panel-top">
+              <div>
+                <span className="focus-label">
+                  {timerMode === "focus" && "FOCUS BLOCK"}
+                  {timerMode === "break" && "BREAK"}
+                  {timerMode === "complete" && "SESSION COMPLETE"}
+                </span>
+                <h2>{activeSession.topic}</h2>
+                <p>
+                  {timerMode === "focus"
+                    ? "Stay focused. Your next break will be scheduled automatically."
+                    : timerMode === "break"
+                      ? "Step away from the screen, stretch, hydrate, and come back refreshed."
+                      : "You completed the planned study time. Excellent work."}
+                </p>
+              </div>
+
+              <div className="timer-circle">
+                <span>{formatTimer(timerSeconds)}</span>
+              </div>
+            </div>
+
+            <div className="focus-progress">
+              <div className="focus-progress-bar">
+                <div
+                  className="focus-progress-fill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      ((elapsedFocusMinutes +
+                        (timerMode === "focus"
+                          ? Math.max(
+                              0,
+                              FOCUS_BLOCK_MINUTES -
+                                Math.floor(timerSeconds / 60)
+                            )
+                          : 0)) /
+                        activeSession.durationMinutes) *
+                        100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="focus-progress-meta">
+                <span>{Math.min(elapsedFocusMinutes, activeSession.durationMinutes)} / {activeSession.durationMinutes} min studied</span>
+                <span>{focusBlocks} focus block{focusBlocks === 1 ? "" : "s"}</span>
+              </div>
+            </div>
+
+            <div className="focus-controls">
+              {timerMode !== "complete" && (
+                <button className="timer-primary" onClick={toggleTimer}>
+                  {timerRunning ? "Pause Timer" : timerMode === "break" ? "Resume Break" : "Start Timer"}
+                </button>
+              )}
+
+              {timerMode === "break" && (
+                <button className="timer-secondary" onClick={skipBreak}>
+                  Skip Break
+                </button>
+              )}
+
+              <button className="timer-secondary" onClick={stopTimer}>
+                Stop
+              </button>
+            </div>
+
+            <div className="break-rule">
+              <strong>Break plan:</strong> {FOCUS_BLOCK_MINUTES} min focus → {SHORT_BREAK_MINUTES} min break · after {BLOCKS_BEFORE_LONG_BREAK} blocks → {LONG_BREAK_MINUTES} min long break
+            </div>
+          </section>
+        )}
+
+        {showForm && (
+          <form className="study-form" onSubmit={handleSubmit}>
+            <h2>Create a Study Session</h2>
+            <p className="form-help">
+              Set the total time you want to study. StudySync will guide you through focus blocks and breaks.
+            </p>
 
             <div className="form-group">
-
               <label>Topic</label>
-
               <input
                 type="text"
                 name="topic"
@@ -301,28 +465,21 @@ function StudySessions() {
                 placeholder="Example: Java Collections"
                 required
               />
-
             </div>
 
             <div className="form-group">
-
               <label>Description</label>
-
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="What did you study?"
+                placeholder="What do you want to accomplish?"
               />
-
             </div>
 
             <div className="form-row">
-
               <div className="form-group">
-
                 <label>Study Date</label>
-
                 <input
                   type="date"
                   name="studyDate"
@@ -330,124 +487,93 @@ function StudySessions() {
                   onChange={handleChange}
                   required
                 />
-
               </div>
 
               <div className="form-group">
-
-                <label>Duration (minutes)</label>
-
+                <label>Total Focus Time (minutes)</label>
                 <input
                   type="number"
                   name="durationMinutes"
                   value={formData.durationMinutes}
                   onChange={handleChange}
-                  placeholder="60"
+                  placeholder="120"
                   min="1"
                   required
                 />
-
               </div>
-
             </div>
 
-            <button
-              className="save-session-button"
-              type="submit"
-            >
+            <div className="timer-tip">
+              <strong>Recommended:</strong> use at least 50 minutes for a full focus block. Longer sessions automatically receive short and long breaks.
+            </div>
+
+            <button className="save-session-button" type="submit">
               Create Session
             </button>
-
           </form>
         )}
 
-        {loading && (
-          <div className="study-loading">
-            Loading your study sessions...
-          </div>
-        )}
+        {loading && <div className="study-loading">Loading your study sessions...</div>}
 
         {!loading && sessions.length === 0 && (
           <div className="no-sessions">
-
             <h2>No study sessions found</h2>
-
-            <p>
-              Start tracking your study sessions.
-            </p>
-
+            <p>Create your first session and start a guided focus timer.</p>
           </div>
         )}
 
         {!loading && sessions.length > 0 && (
           <section className="session-grid">
-
             {sessions.map((session) => (
-
-              <div
-                className="session-card"
-                key={session.id}
-              >
-
-                <h2>{session.topic}</h2>
+              <div className={`session-card ${session.completed ? "is-completed" : ""}`} key={session.id}>
+                <div className="session-card-heading">
+                  <div>
+                    <span className="session-date">{session.studyDate}</span>
+                    <h2>{session.topic}</h2>
+                  </div>
+                  <span className={session.completed ? "status-pill completed" : "status-pill pending"}>
+                    {session.completed ? "Completed" : "Pending"}
+                  </span>
+                </div>
 
                 <p className="session-description">
-                  {session.description ||
-                    "No description provided."}
+                  {session.description || "No description provided."}
                 </p>
 
                 <div className="session-details">
+                  <span>{session.durationMinutes} min planned</span>
+                  <span>{session.completed ? "Nice work." : "Ready to study."}</span>
+                </div>
 
-                  <div>
-                    <strong>Date:</strong>{" "}
-                    {session.studyDate}
-                  </div>
-
-                  <div>
-                    <strong>Duration:</strong>{" "}
-                    {session.durationMinutes} minutes
-                  </div>
-
-                  <div>
-                    <strong>Status:</strong>{" "}
-
+                <div className="session-actions">
+                  {!session.completed && (
                     <button
-                      className={
-                        session.completed
-                          ? "session-completed session-status-button"
-                          : "session-pending session-status-button"
-                      }
-                      onClick={() =>
-                        toggleSessionStatus(session)
-                      }
+                      className="start-session-button"
+                      onClick={() => startTimerForSession(session)}
                     >
-                      {session.completed
-                        ? "Completed"
-                        : "Pending"}
+                      {activeSessionId === session.id ? "Restart Timer" : "Start Focus Timer"}
                     </button>
+                  )}
 
-                  </div>
+                  <button
+                    className="session-status-button"
+                    onClick={() => toggleSessionStatus(session)}
+                  >
+                    {session.completed ? "Mark Pending" : "Mark Complete"}
+                  </button>
 
                   <button
                     className="delete-session-button"
-                    onClick={() =>
-                      deleteSession(session.id)
-                    }
+                    onClick={() => deleteSession(session.id)}
                   >
-                    Delete Session
+                    Delete
                   </button>
-
                 </div>
-
               </div>
-
             ))}
-
           </section>
         )}
-
       </main>
-
     </div>
   );
 }
