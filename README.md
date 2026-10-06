@@ -49,6 +49,9 @@ The application provides REST APIs and a browser-based frontend for managing:
 - Tasks
 - Study sessions
 - Coding-platform profiles and statistics
+- Smart dashboard insights and weekly study analytics
+- Guided Pomodoro-style Focus Mode with short/long breaks
+- Session-protected routes and hardened authentication cookies
 - Student dashboard information
 
 ## Features
@@ -295,6 +298,14 @@ Account creation is handled by `POST /api/auth/register`; the legacy `POST /api/
 |---|---|---|
 | GET | `/api/dashboard` | Get dashboard information for the authenticated student |
 | GET | `/api/dashboard/{studentId}` | Get dashboard information when the path ID matches the authenticated student |
+
+### Study Analytics
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/analytics?days=7` | Get authenticated student's study consistency, completed focus time, daily study chart data, top topics, and task completion rate |
+
+The analytics window supports 7–30 days.
 
 ### Coding Platforms
 
