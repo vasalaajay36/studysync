@@ -56,6 +56,10 @@ export async function requestTimerNotificationPermission() {
   }
 }
 
+export function stopStudyTimer() {
+  broadcast(null);
+}
+
 export function startStudyTimer(session) {
   const timer = {
     status: "running",
