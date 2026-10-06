@@ -204,11 +204,13 @@ src/main/java/com/studysync/
 │   ├── SubjectNotFoundException.java
 │   └── TaskNotFoundException.java
 ├── repository/
+│   ├── CodingPlatformRepository.java
 │   ├── StudentRepository.java
 │   ├── StudySessionRepository.java
 │   ├── SubjectRepository.java
 │   └── TaskRepository.java
 ├── service/
+│   ├── CodingPlatformService.java
 │   ├── DashboardService.java
 │   ├── StudentService.java
 │   ├── StudySessionService.java
