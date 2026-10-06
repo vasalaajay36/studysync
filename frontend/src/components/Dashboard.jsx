@@ -171,6 +171,10 @@ function Dashboard() {
     window.location.href = "/coding-platforms";
   };
 
+  const goToAnalytics = () => {
+    window.location.href = "/analytics";
+  };
+
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -283,6 +287,11 @@ function Dashboard() {
             >
               <span className="nav-icon">&lt;/&gt;</span>
               Coding Platforms
+            </button>
+
+            <button className="nav-item" onClick={goToAnalytics}>
+              <span className="nav-icon">▥</span>
+              Study Analytics
             </button>
           </nav>
         </div>
