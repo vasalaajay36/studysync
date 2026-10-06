@@ -42,7 +42,7 @@ const PLATFORM_OPTIONS = [
     icon: "CS",
     description: "Algorithmic Problem Set",
     profileUrl: "https://cses.fi/user/",
-    automatic: false,
+    automatic: true,
   },
 ];
 
