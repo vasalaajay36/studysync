@@ -16,6 +16,7 @@ public class CodingPlatform {
     private Integer problemsSolved;
     private Double rating;
     private Long globalRank;
+    private String rankTitle;
     private Integer contestsParticipated;
     private Double highestRating;
     private Integer streak;
@@ -40,7 +41,9 @@ public class CodingPlatform {
     public Double getRating() { return rating; }
     public void setRating(Double rating) { this.rating = rating; }
     public Long getGlobalRank() { return globalRank; }
+    public String getRankTitle() { return rankTitle; }
     public void setGlobalRank(Long globalRank) { this.globalRank = globalRank; }
+    public void setRankTitle(String rankTitle) { this.rankTitle = rankTitle; }
     public Integer getContestsParticipated() { return contestsParticipated; }
     public void setContestsParticipated(Integer contestsParticipated) { this.contestsParticipated = contestsParticipated; }
     public Double getHighestRating() { return highestRating; }
