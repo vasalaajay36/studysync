@@ -57,7 +57,8 @@ public class DashboardService {
         long totalStudySessions = sessions.size();
 
         long totalStudyMinutes = sessions.stream()
-                .mapToLong(session -> session.getDurationMinutes())
+                .filter(StudySession::isCompleted)
+                .mapToLong(session -> session.getDurationMinutes() == null ? 0 : session.getDurationMinutes())
                 .sum();
 
         return new DashboardResponse(
