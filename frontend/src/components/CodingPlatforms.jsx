@@ -512,6 +512,7 @@ function CodingPlatforms() {
           <button className="active" onClick={() => goTo("/coding-platforms")}>
             Coding Platforms
           </button>
+          <button onClick={() => goTo("/analytics")}>Study Analytics</button>
         </nav>
 
         <button className="logout-coding-button" onClick={logout}>
