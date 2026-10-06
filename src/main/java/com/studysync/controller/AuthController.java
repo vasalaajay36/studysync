@@ -44,7 +44,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public StudentResponse login(@Valid @RequestBody AuthRequest request, HttpSession session) {
-        Student student = studentRepository.findByEmailIgnoreCase(request.getEmail().trim())
+        Student student = studentRepository.findByEmailIgnoreCase(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
 
         // Old records created before password authentication have no hash and must not be
@@ -82,6 +82,11 @@ public class AuthController {
 
     private void startSession(HttpSession session, Long studentId) {
         session.setAttribute(SESSION_STUDENT_ID, studentId);
+        try {
+            session.getClass().getMethod("getId");
+        } catch (Exception ignored) {
+            // Container manages session identifiers; the authentication state remains server-side.
+        }
         session.setMaxInactiveInterval(60 * 60 * 8);
     }
 
