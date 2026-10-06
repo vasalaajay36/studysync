@@ -330,10 +330,6 @@ function StudySessions() {
     window.location.href = "/tasks";
   };
 
-  const goToSubjects = () => {
-    window.location.href = "/subjects";
-  };
-
   const goToCodingPlatforms = () => {
     window.location.href = "/coding-platforms";
   };
@@ -368,7 +364,6 @@ function StudySessions() {
         <nav className="study-nav">
           <button onClick={goToDashboard}>Dashboard</button>
           <button onClick={goToTasks}>Tasks</button>
-          <button onClick={goToSubjects}>Subjects</button>
           <button className="active">Study Sessions</button>
           <button onClick={goToCodingPlatforms}>Coding Platforms</button>
           <button onClick={goToAnalytics}>Study Analytics</button>
