@@ -67,3 +67,45 @@ export function useCountdown(initialSeconds = 0) {
     [seconds, running]
   );
 }
+
+
+export default function StudyTimer() {
+  const timer = useCountdown(FOCUS_BLOCK_MINUTES * 60);
+
+  useEffect(() => {
+    if (timer.seconds !== 0 || timer.running) return;
+    notifyTimer("StudySync timer", "Study block completed. Take a short break.");
+  }, [timer.seconds, timer.running]);
+
+  const reset = () => {
+    timer.setRunning(false);
+    timer.setSeconds(FOCUS_BLOCK_MINUTES * 60);
+  };
+
+  return (
+    <aside
+      aria-label="Study timer"
+      style={{
+        position: "fixed",
+        right: "1rem",
+        bottom: "1rem",
+        zIndex: 1000,
+        padding: "0.75rem 1rem",
+        borderRadius: "12px",
+        background: "var(--card-bg, #ffffff)",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.6rem",
+      }}
+    >
+      <strong>{formatTimer(timer.seconds)}</strong>
+      <button type="button" onClick={timer.toggle}>
+        {timer.running ? "Pause" : "Start"}
+      </button>
+      <button type="button" onClick={reset}>
+        Reset
+      </button>
+    </aside>
+  );
+}
