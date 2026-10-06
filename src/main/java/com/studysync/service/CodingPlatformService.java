@@ -98,7 +98,9 @@ public class CodingPlatformService {
             case "leetcode" -> fetchLeetCode(result, user);
             case "codeforces" -> fetchCodeforces(result, user);
             case "codechef" -> fetchCodeChef(result, user);
-            case "hackerrank", "cses", "spoj" -> { }
+            case "hackerrank" -> fetchHackerRank(result, user);
+            case "cses" -> fetchCses(result, user);
+            case "spoj" -> fetchSpoj(result, user);
             default -> throw new IllegalArgumentException("Unsupported coding platform: " + name);
         }
         return toResponse(result);
@@ -357,6 +359,259 @@ public class CodingPlatformService {
         }
 
         return Integer.parseInt(matcher.group(1).replace(",", ""));
+    }
+
+
+    private void fetchHackerRank(CodingPlatform result, String username) {
+        String url = buildProfileUrl("hackerrank", username);
+
+        try {
+            org.jsoup.Connection.Response response = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (compatible; StudySync/1.0)")
+                    .referrer("https://www.google.com/")
+                    .timeout(20000)
+                    .ignoreHttpErrors(true)
+                    .followRedirects(true)
+                    .execute();
+
+            if (response.statusCode() == 404) {
+                throw new IllegalArgumentException("HackerRank username not found: " + username);
+            }
+            if (response.statusCode() >= 400) {
+                throw new IllegalArgumentException(
+                        "HackerRank profile could not be opened (HTTP " + response.statusCode() + ")"
+                );
+            }
+
+            Document document = response.parse();
+            String text = document.body().text();
+
+            if (text.isBlank() || text.length() < 40) {
+                throw new IllegalArgumentException(
+                        "HackerRank did not expose public profile statistics for @" + username
+                                + ". The profile may be private or require JavaScript."
+                );
+            }
+
+            String lower = text.toLowerCase();
+            if (lower.contains("profile not found") || lower.contains("page not found")) {
+                throw new IllegalArgumentException("HackerRank username not found: " + username);
+            }
+
+            result.setUsername(username);
+            result.setProblemsSolved(
+                    firstPositiveInteger(text,
+                            "problems\\s+solved\\s*[:\\-]?\\s*([\\d,]+)",
+                            "challenges?\\s+solved\\s*[:\\-]?\\s*([\\d,]+)")
+            );
+
+            result.setContestsParticipated(
+                    firstPositiveInteger(text,
+                            "contests?\\s+(?:participated|attended)\\s*[:\\-]?\\s*([\\d,]+)")
+            );
+
+            result.setPlatformRank(
+                    firstLong(text,
+                            "global\\s+rank\\s*[:#]?\\s*([\\d,]+)",
+                            "rank\\s*[:#]\\s*([\\d,]+)")
+            );
+
+            result.setRating(
+                    firstDouble(text,
+                            "rating\\s*[:\\-]?\\s*([\\d]+(?:\\.\\d+)?)")
+            );
+
+            result.setHighestRating(result.getRating());
+            result.setUrl(url);
+
+            if (result.getProblemsSolved() == 0
+                    && result.getContestsParticipated() == 0
+                    && result.getPlatformRank() == 0
+                    && result.getRating() == 0D) {
+                throw new IllegalArgumentException(
+                        "HackerRank profile was found, but its public page did not expose numeric statistics. "
+                                + "HackerRank currently hides some profile statistics behind its client-side UI."
+                );
+            }
+        } catch (java.net.SocketTimeoutException | HttpTimeoutException ex) {
+            throw new IllegalArgumentException(
+                    "HackerRank profile service timed out. Please try again."
+            );
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(
+                    "Unable to read HackerRank profile data. Please try again."
+            );
+        }
+    }
+
+    private void fetchCses(CodingPlatform result, String username) {
+        String url = buildProfileUrl("cses", username);
+
+        try {
+            org.jsoup.Connection.Response response = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (compatible; StudySync/1.0)")
+                    .referrer("https://cses.fi/")
+                    .timeout(15000)
+                    .ignoreHttpErrors(true)
+                    .followRedirects(true)
+                    .execute();
+
+            if (response.statusCode() == 404) {
+                throw new IllegalArgumentException("CSES username not found: " + username);
+            }
+            if (response.statusCode() >= 400) {
+                throw new IllegalArgumentException(
+                        "CSES profile could not be opened (HTTP " + response.statusCode() + ")"
+                );
+            }
+
+            Document document = response.parse();
+            String text = document.body().text();
+
+            if (text.isBlank()) {
+                throw new IllegalArgumentException("CSES returned an empty profile page.");
+            }
+
+            String lower = text.toLowerCase();
+            if (lower.contains("user not found") || lower.contains("page not found")) {
+                throw new IllegalArgumentException("CSES username not found: " + username);
+            }
+
+            result.setUsername(username);
+            result.setProblemsSolved(
+                    firstPositiveInteger(text,
+                            "problems?\\s+solved\\s*[:\\-]?\\s*([\\d,]+)",
+                            "tasks?\\s+solved\\s*[:\\-]?\\s*([\\d,]+)",
+                            "solved\\s*[:\\-]?\\s*([\\d,]+)")
+            );
+            result.setContestsParticipated(
+                    firstPositiveInteger(text,
+                            "contests?\\s+(?:participated|attended)\\s*[:\\-]?\\s*([\\d,]+)")
+            );
+            result.setPlatformRank(
+                    firstLong(text,
+                            "rank\\s*[:#]?\\s*([\\d,]+)",
+                            "global\\s+rank\\s*[:#]?\\s*([\\d,]+)")
+            );
+            result.setUrl(url);
+
+            if (result.getProblemsSolved() == 0
+                    && result.getContestsParticipated() == 0
+                    && result.getPlatformRank() == 0) {
+                throw new IllegalArgumentException(
+                        "CSES profile was found, but no public statistics were exposed for @" + username
+                );
+            }
+        } catch (java.net.SocketTimeoutException | HttpTimeoutException ex) {
+            throw new IllegalArgumentException(
+                    "CSES profile service timed out. Please try again."
+            );
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(
+                    "Unable to read CSES profile data. Please try again."
+            );
+        }
+    }
+
+    private void fetchSpoj(CodingPlatform result, String username) {
+        String url = buildProfileUrl("spoj", username);
+
+        try {
+            org.jsoup.Connection.Response response = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (compatible; StudySync/1.0)")
+                    .referrer("https://www.spoj.com/")
+                    .timeout(15000)
+                    .ignoreHttpErrors(true)
+                    .followRedirects(true)
+                    .execute();
+
+            if (response.statusCode() == 404) {
+                throw new IllegalArgumentException("SPOJ username not found: " + username);
+            }
+            if (response.statusCode() >= 400) {
+                throw new IllegalArgumentException(
+                        "SPOJ profile could not be opened (HTTP " + response.statusCode() + ")"
+                );
+            }
+
+            Document document = response.parse();
+            String text = document.body().text();
+
+            if (text.isBlank()
+                    || !text.toLowerCase().contains("problems solved")) {
+                throw new IllegalArgumentException("SPOJ username not found or profile statistics are unavailable: " + username);
+            }
+
+            result.setUsername(username);
+
+            // SPOJ's public profile explicitly exposes these values.
+            result.setProblemsSolved(
+                    firstPositiveInteger(text,
+                            "problems\\s+solved\\s+([\\d,]+)")
+            );
+
+            result.setPlatformRank(
+                    firstLong(text,
+                            "world\\s+rank\\s*:\\s*#?([\\d,]+)")
+            );
+
+            result.setContestsParticipated(
+                    firstPositiveInteger(text,
+                            "contests?\\s+(?:participated|attended)\\s*[:\\-]?\\s*([\\d,]+)")
+            );
+
+            result.setUrl(url);
+        } catch (java.net.SocketTimeoutException | HttpTimeoutException ex) {
+            throw new IllegalArgumentException(
+                    "SPOJ profile service timed out. Please try again."
+            );
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(
+                    "Unable to read SPOJ profile data. Please try again."
+            );
+        }
+    }
+
+    private int firstPositiveInteger(String text, String... patterns) {
+        for (String pattern : patterns) {
+            int value = extractInteger(text, pattern);
+            if (value > 0) {
+                return value;
+            }
+        }
+        return 0;
+    }
+
+    private long firstLong(String text, String... patterns) {
+        for (String pattern : patterns) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile(pattern, java.util.regex.Pattern.CASE_INSENSITIVE)
+                    .matcher(text);
+            if (matcher.find()) {
+                try {
+                    return Long.parseLong(matcher.group(1).replace(",", ""));
+                } catch (NumberFormatException ignored) {
+                    // Try the next pattern.
+                }
+            }
+        }
+        return 0L;
+    }
+
+    private double firstDouble(String text, String... patterns) {
+        for (String pattern : patterns) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile(pattern, java.util.regex.Pattern.CASE_INSENSITIVE)
+                    .matcher(text);
+            if (matcher.find()) {
+                try {
+                    return Double.parseDouble(matcher.group(1).replace(",", ""));
+                } catch (NumberFormatException ignored) {
+                    // Try the next pattern.
+                }
+            }
+        }
+        return 0D;
     }
 
     private void fetchCodeforces(CodingPlatform result, String username) {
