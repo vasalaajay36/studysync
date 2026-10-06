@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Tasks from "./components/Tasks";
-import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
 import Analytics from "./components/Analytics";
@@ -92,9 +91,6 @@ function App() {
   }
   if (path === "/tasks") {
     return <ProtectedPage><Tasks /></ProtectedPage>;
-  }
-  if (path === "/subjects") {
-    return <ProtectedPage><Subjects /></ProtectedPage>;
   }
   if (path === "/study-sessions") {
     return <ProtectedPage><StudySessions /></ProtectedPage>;
