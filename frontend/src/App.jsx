@@ -5,6 +5,7 @@ import Tasks from "./components/Tasks";
 import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
+import StudyTimer from "./components/StudyTimer";
 import StudyTimer from "./components/StudyTimer.jsx";
 
 // Keep the server-side session cookie attached to every same-origin API request.
