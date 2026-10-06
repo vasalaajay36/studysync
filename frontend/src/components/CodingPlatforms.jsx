@@ -28,14 +28,14 @@ const PLATFORM_OPTIONS = [
     icon: "HR",
     description: "Programming Practice",
     profileUrl: "https://www.hackerrank.com/profile/",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "SPOJ",
     icon: "SP",
     description: "Programming Problems",
     profileUrl: "https://www.spoj.com/users/",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "CSES",
@@ -700,8 +700,8 @@ function CodingPlatforms() {
             <div className="empty-icon">CP</div>
             <h2>Your coding portfolio is empty</h2>
             <p>
-              Add LeetCode, Codeforces, CodeChef or another supported platform to
-              start tracking your progress.
+              Add LeetCode, Codeforces, CodeChef, HackerRank, SPOJ, CSES or another
+              supported platform to start tracking your progress.
             </p>
             <button className="primary-button" onClick={openCreateForm}>
               + Add Your First Profile
