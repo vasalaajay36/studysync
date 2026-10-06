@@ -5,6 +5,7 @@ import Tasks from "./components/Tasks";
 import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
+import Analytics from "./components/Analytics";
 import StudyTimer from "./components/StudyTimer.jsx";
 
 // Keep the server-side session cookie attached to every same-origin API request.
@@ -100,6 +101,9 @@ function App() {
   }
   if (path === "/coding-platforms") {
     return <ProtectedPage><CodingPlatforms /></ProtectedPage>;
+  }
+  if (path === "/analytics") {
+    return <ProtectedPage><Analytics /></ProtectedPage>;
   }
 
   return <Login />;
