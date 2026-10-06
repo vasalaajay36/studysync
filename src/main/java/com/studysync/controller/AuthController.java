@@ -5,6 +5,7 @@ import com.studysync.dto.RegisterRequest;
 import com.studysync.dto.StudentResponse;
 import com.studysync.entity.Student;
 import com.studysync.repository.StudentRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public StudentResponse register(@Valid @RequestBody RegisterRequest request, HttpSession session) {
+    public StudentResponse register(@Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest, HttpSession session) {
         String email = request.getEmail().trim().toLowerCase();
         if (studentRepository.existsByEmailIgnoreCase(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists");
@@ -38,12 +39,13 @@ public class AuthController {
         student.setCourse(request.getCourse().trim());
         student.setPasswordHash(PASSWORD_ENCODER.encode(request.getPassword()));
         Student saved = studentRepository.save(student);
+        rotateSession(servletRequest, session);
         startSession(session, saved.getId());
         return toResponse(saved);
     }
 
     @PostMapping("/login")
-    public StudentResponse login(@Valid @RequestBody AuthRequest request, HttpSession session) {
+    public StudentResponse login(@Valid @RequestBody AuthRequest request, HttpServletRequest servletRequest, HttpSession session) {
         Student student = studentRepository.findByEmailIgnoreCase(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
 
@@ -54,6 +56,7 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
 
+        rotateSession(servletRequest, session);
         startSession(session, student.getId());
         return toResponse(student);
     }
@@ -80,13 +83,16 @@ public class AuthController {
         return studentId;
     }
 
+    private void rotateSession(HttpServletRequest request, HttpSession session) {
+        try {
+            request.changeSessionId();
+        } catch (IllegalStateException ignored) {
+            session.invalidate();
+        }
+    }
+
     private void startSession(HttpSession session, Long studentId) {
         session.setAttribute(SESSION_STUDENT_ID, studentId);
-        try {
-            session.getClass().getMethod("getId");
-        } catch (Exception ignored) {
-            // Container manages session identifiers; the authentication state remains server-side.
-        }
         session.setMaxInactiveInterval(60 * 60 * 8);
     }
 
