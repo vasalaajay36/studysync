@@ -9,6 +9,7 @@ public class CodingPlatformResponse {
     private Integer problemsSolved;
     private Double rating;
     private Long globalRank;
+    private String rankTitle;
     private Integer contestsParticipated;
     private Double highestRating;
     private Integer streak;
@@ -19,7 +20,7 @@ public class CodingPlatformResponse {
 
     public CodingPlatformResponse(Long id, String name, String url, String username,
                                   Integer problemsSolved, Double rating, Long globalRank,
-                                  Integer contestsParticipated, Double highestRating,
+                                  String rankTitle, Integer contestsParticipated, Double highestRating,
                                   Integer streak, Long platformRank, Long studentId) {
         this.id = id;
         this.name = name;
@@ -28,6 +29,7 @@ public class CodingPlatformResponse {
         this.problemsSolved = problemsSolved;
         this.rating = rating;
         this.globalRank = globalRank;
+        this.rankTitle = rankTitle;
         this.contestsParticipated = contestsParticipated;
         this.highestRating = highestRating;
         this.streak = streak;
@@ -48,7 +50,9 @@ public class CodingPlatformResponse {
     public Double getRating() { return rating; }
     public void setRating(Double rating) { this.rating = rating; }
     public Long getGlobalRank() { return globalRank; }
+    public String getRankTitle() { return rankTitle; }
     public void setGlobalRank(Long globalRank) { this.globalRank = globalRank; }
+    public void setRankTitle(String rankTitle) { this.rankTitle = rankTitle; }
     public Integer getContestsParticipated() { return contestsParticipated; }
     public void setContestsParticipated(Integer contestsParticipated) { this.contestsParticipated = contestsParticipated; }
     public Double getHighestRating() { return highestRating; }
