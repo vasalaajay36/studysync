@@ -19,9 +19,7 @@
   margin: 0 0 40px 12px;
 }
 
-.study-logo span {
-  color: #7357f5;
-}
+.study-logo span { color: #7357f5; }
 
 .study-nav {
   display: flex;
@@ -49,13 +47,22 @@
 .study-main {
   flex: 1;
   padding: 35px 45px;
+  max-width: 1400px;
 }
 
 .study-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
+}
+
+.study-eyebrow {
+  color: #6752e9;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  margin-bottom: 7px;
 }
 
 .study-header h1 {
@@ -75,25 +82,161 @@
 }
 
 .add-session-button,
-.back-study-button {
+.back-study-button,
+.save-session-button,
+.timer-primary,
+.timer-secondary,
+.start-session-button {
   border: none;
   color: white;
   padding: 11px 18px;
   border-radius: 9px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.add-session-button {
+.add-session-button,
+.back-study-button,
+.timer-primary,
+.start-session-button {
   background: #6752e9;
 }
 
-.add-session-button:hover {
+.add-session-button:hover,
+.back-study-button:hover,
+.timer-primary:hover,
+.start-session-button:hover {
   background: #5843d2;
 }
 
-.back-study-button {
+.study-error {
+  background: #fff0f1;
+  border: 1px solid #f0b8bd;
+  color: #a82938;
+  padding: 13px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.focus-panel {
+  background: white;
+  border: 1px solid #e7e8f1;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(30, 40, 80, 0.08);
+}
+
+.focus-panel.break {
+  border-color: #d9c6ff;
+  background: #fbf9ff;
+}
+
+.focus-panel.complete {
+  border-color: #b8e2cd;
+  background: #f5fcf8;
+}
+
+.focus-panel-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  align-items: center;
+}
+
+.focus-label {
+  color: #6752e9;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.focus-panel.break .focus-label { color: #7a49b8; }
+.focus-panel.complete .focus-label { color: #24845b; }
+
+.focus-panel h2 {
+  margin: 8px 0 7px;
+  font-size: 25px;
+}
+
+.focus-panel p {
+  color: #70778c;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.timer-circle {
+  width: 145px;
+  height: 145px;
+  min-width: 145px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #121d40;
+  color: white;
+  box-shadow: inset 0 0 0 9px #ebe8ff;
+}
+
+.focus-panel.break .timer-circle { background: #7a49b8; }
+.focus-panel.complete .timer-circle { background: #24845b; }
+
+.timer-circle span {
+  font-size: 31px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-progress {
+  margin-top: 25px;
+}
+
+.focus-progress-bar {
+  height: 9px;
+  border-radius: 20px;
+  background: #e9eaf2;
+  overflow: hidden;
+}
+
+.focus-progress-fill {
+  height: 100%;
   background: #6752e9;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.focus-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #737a91;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.focus-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.timer-secondary {
+  background: #eef0f7;
+  color: #2e3754;
+}
+
+.timer-secondary:hover {
+  background: #e0e3ee;
+}
+
+.break-rule,
+.timer-tip,
+.form-help {
+  margin-top: 17px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f7f7fb;
+  color: #626a82;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .study-form {
@@ -107,7 +250,7 @@
 
 .study-form h2 {
   margin-top: 0;
-  margin-bottom: 22px;
+  margin-bottom: 7px;
 }
 
 .form-group {
@@ -134,9 +277,7 @@
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
-  border-color: #6752e9;
-}
+.form-group textarea:focus { border-color: #6752e9; }
 
 .form-group textarea {
   min-height: 90px;
@@ -149,26 +290,14 @@
   gap: 18px;
 }
 
-.save-session-button {
-  border: none;
-  background: #24845b;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-weight: 600;
-}
+.save-session-button { background: #24845b; }
+.save-session-button:hover { background: #1d704d; }
 
-.save-session-button:hover {
-  background: #1d704d;
-}
+.timer-tip { background: #f2f0ff; color: #51469a; }
 
 .session-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(280px, 1fr)
-  );
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 22px;
 }
 
@@ -180,9 +309,42 @@
   border: 1px solid #e9eaf2;
 }
 
+.session-card.is-completed {
+  border-color: #b8e2cd;
+}
+
+.session-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: flex-start;
+}
+
 .session-card h2 {
-  margin: 0 0 10px;
+  margin: 4px 0 0;
   font-size: 20px;
+}
+
+.session-date {
+  color: #8a90a2;
+  font-size: 12px;
+}
+
+.status-pill {
+  padding: 5px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.status-pill.pending {
+  background: #fff4da;
+  color: #a66d00;
+}
+
+.status-pill.completed {
+  background: #e4f6ec;
+  color: #24734d;
 }
 
 .session-description {
@@ -192,38 +354,45 @@
 }
 
 .session-details {
-  margin-top: 20px;
+  margin-top: 18px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   gap: 10px;
-  font-size: 14px;
+  color: #626a82;
+  font-size: 13px;
 }
 
-.session-pending {
-  color: #d18a00;
-  font-weight: 700;
+.session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 18px;
 }
 
-.session-completed {
-  color: #24845b;
-  font-weight: 700;
+.session-actions button {
+  flex: 1;
+  min-width: 100px;
 }
 
 .session-status-button {
-  border: none;
-  background: transparent;
+  border: 1px solid #dfe2ec;
+  background: white;
+  color: #38415e;
+  padding: 10px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 0;
-  font-size: 14px;
+  font-weight: 600;
+}
+
+.session-status-button:hover {
+  background: #f4f5fa;
 }
 
 .delete-session-button {
-  margin-top: 20px;
-  width: 100%;
   border: 1px solid #e05260;
   background: white;
   color: #d83b4b;
-  padding: 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -242,9 +411,7 @@
   text-align: center;
 }
 
-.no-sessions {
-  color: #737a91;
-}
+.no-sessions { color: #737a91; }
 
 .logout-study-button {
   margin-top: 40px;
@@ -259,6 +426,23 @@
   cursor: pointer;
 }
 
-.logout-study-button:hover {
-  background: #2a365d;
+.logout-study-button:hover { background: #2a365d; }
+
+@media (max-width: 900px) {
+  .study-sidebar { width: 190px; }
+  .study-main { padding: 25px; }
+  .study-header { align-items: flex-start; gap: 15px; }
+  .focus-panel-top { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 650px) {
+  .study-sessions-page { display: block; }
+  .study-sidebar { width: 100%; }
+  .study-nav { flex-direction: row; overflow-x: auto; }
+  .study-nav button { white-space: nowrap; }
+  .study-main { padding: 20px; }
+  .study-header { flex-direction: column; }
+  .study-header-buttons { width: 100%; }
+  .study-header-buttons button { flex: 1; }
+  .form-row { grid-template-columns: 1fr; }
 }
