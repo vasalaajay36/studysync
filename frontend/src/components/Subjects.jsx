@@ -178,6 +178,7 @@ function Subjects() {
   const goToTasks = () => { window.location.href = "/tasks"; };
   const goToStudySessions = () => { window.location.href = "/study-sessions"; };
   const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
+  const goToAnalytics = () => { window.location.href = "/analytics"; };
 
   const logout = async () => {
     try {
