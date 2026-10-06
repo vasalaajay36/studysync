@@ -5,6 +5,7 @@ import Tasks from "./components/Tasks";
 import Subjects from "./components/Subjects";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
+import StudyTimer from "./components/StudyTimer";
 
 // Keep the server-side session cookie attached to every same-origin API request.
 // The Vite proxy sends /api requests to Spring Boot during local development.
@@ -74,7 +75,12 @@ function ProtectedPage({ children }) {
     );
   }
 
-  return children;
+  return (
+    <>
+      {children}
+      <StudyTimer />
+    </>
+  );
 }
 
 function App() {
