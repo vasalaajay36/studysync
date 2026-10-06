@@ -108,17 +108,19 @@ function showTimerNotification(timer, remainingMs, completed = false) {
 }
 
 async function openFloatingTimer() {
-  if (!("documentPictureInPicture" in document)) {
+  const pip = window.documentPictureInPicture;
+
+  if (!pip) {
     alert("Floating timer is not supported by this browser. Enable notifications instead.");
     return;
   }
 
-  if (documentPictureInPicture.window) {
-    documentPictureInPicture.window.focus();
+  if (pip.window) {
+    pip.window.focus();
     return;
   }
 
-  const timerWindow = await documentPictureInPicture.requestWindow({
+  const timerWindow = await pip.requestWindow({
     width: 330,
     height: 190,
   });
