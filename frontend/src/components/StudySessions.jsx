@@ -8,7 +8,7 @@ import {
   formatTimer,
   notifyTimer,
   requestTimerNotificationPermission,
-} from "./StudyTimer";
+} from "./StudyTimer.jsx";
 
 const EMPTY_FORM = {
   topic: "",
