@@ -171,10 +171,6 @@ function Dashboard() {
     window.location.href = "/tasks";
   };
 
-  const goToSubjects = () => {
-    window.location.href = "/subjects";
-  };
-
   const goToStudySessions = () => {
     window.location.href = "/study-sessions";
   };
@@ -279,14 +275,6 @@ function Dashboard() {
 
             <button
               className="nav-item"
-              onClick={goToSubjects}
-            >
-              <span className="nav-icon">▣</span>
-              Subjects
-            </button>
-
-            <button
-              className="nav-item"
               onClick={goToStudySessions}
             >
               <span className="nav-icon">◷</span>
@@ -363,9 +351,8 @@ function Dashboard() {
             </h2>
 
             <p>
-              Manage your subjects, complete your tasks,
-              record study sessions and keep your coding
-              platforms connected.
+              Complete your tasks, record study sessions
+              and keep your coding platforms connected.
             </p>
           </div>
 
@@ -399,29 +386,6 @@ function Dashboard() {
             <small>
               {stats.completedTasks} completed ·{" "}
               {stats.pendingTasks} pending
-            </small>
-          </button>
-
-          <button
-            className="stat-card"
-            onClick={goToSubjects}
-          >
-            <div className="stat-card-top">
-              <span className="stat-icon subject-icon">
-                ▣
-              </span>
-
-              <span className="stat-label">
-                SUBJECTS
-              </span>
-            </div>
-
-            <strong>
-              {loading ? "—" : stats.totalSubjects}
-            </strong>
-
-            <small>
-              Subjects you're currently studying
             </small>
           </button>
 
