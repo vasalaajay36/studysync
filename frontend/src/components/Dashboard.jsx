@@ -15,6 +15,7 @@ function Dashboard() {
   });
 
   const [codingPlatformCount, setCodingPlatformCount] = useState(0);
+  const [analytics, setAnalytics] = useState(null);
   const [codingProfiles, setCodingProfiles] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ function Dashboard() {
         tasksResponse,
         studySessionsResponse,
         codingPlatformsResponse,
+        analyticsResponse,
       ] = await Promise.all([
         fetch(`/api/dashboard/${studentId}`, {
           credentials: "include",
@@ -63,6 +65,10 @@ function Dashboard() {
         fetch("/api/coding-platforms", {
           credentials: "include",
         }),
+
+        fetch("/api/analytics?days=7", {
+          credentials: "include",
+        }),
       ]);
 
       if (!dashboardResponse.ok) {
@@ -81,10 +87,15 @@ function Dashboard() {
         throw new Error("Unable to load coding platforms");
       }
 
+      if (!analyticsResponse.ok) {
+        throw new Error("Unable to load study analytics");
+      }
+
       const dashboardData = await dashboardResponse.json();
       const tasks = await tasksResponse.json();
       const studySessions = await studySessionsResponse.json();
       const codingPlatforms = await codingPlatformsResponse.json();
+      const analyticsData = await analyticsResponse.json();
 
       setStats({
         totalSubjects: dashboardData.totalSubjects || 0,
@@ -101,6 +112,7 @@ function Dashboard() {
 
       setCodingPlatformCount(safeCodingPlatforms.length);
       setCodingProfiles(safeCodingPlatforms);
+      setAnalytics(analyticsData);
 
       const taskActivities = Array.isArray(tasks)
         ? tasks.map((task) => ({
@@ -511,6 +523,45 @@ function Dashboard() {
           >
             Open Coding Profiles →
           </button>
+        </section>
+
+        <section className="smart-dashboard-grid">
+          <div className="smart-panel">
+            <div className="section-header">
+              <div>
+                <p className="section-label">SMART DASHBOARD</p>
+                <h2>This Week</h2>
+              </div>
+              <button className="mini-link" onClick={() => (window.location.href = "/analytics")}>View Analytics →</button>
+            </div>
+            <div className="smart-metrics">
+              <div><span>Study Time</span><strong>{loading ? "—" : formatMinutes(analytics?.totalStudyMinutes)}</strong></div>
+              <div><span>Study Days</span><strong>{loading ? "—" : analytics?.studyDays ?? 0}</strong></div>
+              <div><span>Task Completion</span><strong>{loading ? "—" : `${analytics?.taskCompletionRate ?? 0}%`}</strong></div>
+            </div>
+            <div className="dashboard-week-chart">
+              {(analytics?.dailyStudy || []).map((day) => {
+                const value = Number(day.minutes) || 0;
+                const max = Math.max(1, ...(analytics?.dailyStudy || []).map((item) => Number(item.minutes) || 0));
+                return (
+                  <div className="dashboard-week-column" key={day.date} title={`${day.date}: ${value} min`}>
+                    <div className="dashboard-week-bar"><span style={{ height: `${(value / max) * 100}%` }} /></div>
+                    <small>{new Date(day.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short" })}</small>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="smart-panel smart-insight">
+            <p className="section-label">SMART INSIGHT</p>
+            <h2>{(analytics?.studyDays || 0) >= 5 ? "Excellent consistency." : "Build your study streak."}</h2>
+            <p>
+              {(analytics?.studyDays || 0) >= 5
+                ? `You studied on ${analytics.studyDays} of the last ${analytics.periodDays} days. Keep protecting your focus time.`
+                : "Try to complete one focused session today. Consistency across several days will make your progress easier to sustain."}
+            </p>
+            <button className="primary-button" onClick={goToStudySessions}>Start Focus Mode</button>
+          </div>
         </section>
 
         <section className="content-grid">
