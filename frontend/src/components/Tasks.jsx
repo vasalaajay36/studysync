@@ -219,7 +219,6 @@ function Tasks() {
   };
 
   const goToDashboard = () => { window.location.href = "/dashboard"; };
-  const goToSubjects = () => { window.location.href = "/subjects"; };
   const goToStudySessions = () => { window.location.href = "/study-sessions"; };
   const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
   const goToAnalytics = () => { window.location.href = "/analytics"; };
@@ -256,10 +255,6 @@ function Tasks() {
 
           <button className="active">
             Tasks
-          </button>
-
-          <button onClick={goToSubjects}>
-            Subjects
           </button>
 
           <button onClick={goToStudySessions}>
