@@ -2,6 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 import "./StudyTimer.css";
 
 const TIMER_KEY = "studysync.activeTimer";
+
+export const FOCUS_BLOCK_MINUTES = 50;
+export const SHORT_BREAK_MINUTES = 10;
+export const LONG_BREAK_MINUTES = 15;
+export const BLOCKS_BEFORE_LONG_BREAK = 4;
+
+export function formatTimer(seconds) {
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+export function notifyTimer(title, body) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      new Notification(title, { body });
+    } catch {
+      // Notifications are optional; the timer still works without them.
+    }
+  }
+}
 const CHANNEL_NAME = "studysync-timer";
 
 function readTimer() {
