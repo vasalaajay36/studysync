@@ -338,6 +338,10 @@ function StudySessions() {
     window.location.href = "/coding-platforms";
   };
 
+  const goToAnalytics = () => {
+    window.location.href = "/analytics";
+  };
+
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", {
@@ -367,6 +371,7 @@ function StudySessions() {
           <button onClick={goToSubjects}>Subjects</button>
           <button className="active">Study Sessions</button>
           <button onClick={goToCodingPlatforms}>Coding Platforms</button>
+          <button onClick={goToAnalytics}>Study Analytics</button>
         </nav>
 
         <button className="logout-study-button" onClick={logout}>
