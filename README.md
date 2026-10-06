@@ -45,7 +45,6 @@ StudySync is a full-stack academic productivity application designed to help stu
 The application provides REST APIs and a browser-based frontend for managing:
 
 - Students
-- Subjects
 - Tasks
 - Study sessions
 - Coding-platform profiles and statistics
