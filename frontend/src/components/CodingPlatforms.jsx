@@ -202,6 +202,7 @@ function CodingPlatforms() {
       problemsSolved: profile.problemsSolved ?? 0,
       rating: profile.rating ?? 0,
       globalRank: profile.globalRank ?? 0,
+      rankTitle: profile.rankTitle ?? "",
       contestsParticipated: profile.contestsParticipated ?? 0,
       highestRating: profile.highestRating ?? 0,
       streak: profile.streak ?? 0,
@@ -307,6 +308,7 @@ function CodingPlatforms() {
         problemsSolved: data.problemsSolved ?? 0,
         rating: data.rating ?? 0,
         globalRank: data.globalRank ?? 0,
+        rankTitle: data.rankTitle ?? "",
         contestsParticipated: data.contestsParticipated ?? 0,
         highestRating: data.highestRating ?? 0,
         streak: data.streak ?? 0,
@@ -344,6 +346,7 @@ function CodingPlatforms() {
         problemsSolved: Number(data.problemsSolved) || 0,
         rating: Number(data.rating) || 0,
         globalRank: Number(data.globalRank) || 0,
+        rankTitle: data.rankTitle || "",
         contestsParticipated: Number(data.contestsParticipated) || 0,
         highestRating: Number(data.highestRating) || 0,
         streak: Number(data.streak) || 0,
@@ -395,6 +398,7 @@ function CodingPlatforms() {
       problemsSolved: Number(formData.problemsSolved) || 0,
       rating: Number(formData.rating) || 0,
       globalRank: Number(formData.globalRank) || 0,
+      rankTitle: formData.rankTitle || "",
       contestsParticipated: Number(formData.contestsParticipated) || 0,
       highestRating: Number(formData.highestRating) || 0,
       streak: Number(formData.streak) || 0,
@@ -746,8 +750,10 @@ function CodingPlatforms() {
                       <strong>{formatRating(profile.rating)}</strong>
                     </div>
                     <div>
-                      <span>Global Rank</span>
-                      <strong>{profile.globalRank ? `#${formatNumber(profile.globalRank)}` : "—"}</strong>
+                      <span>{profile.name === "Codeforces" ? "Official Rank" : "Global Rank"}</span>
+                      <strong>{profile.name === "Codeforces"
+                        ? (profile.rankTitle || "—")
+                        : (profile.globalRank ? `#${formatNumber(profile.globalRank)}` : "—")}</strong>
                     </div>
                     <div>
                       <span>Contests</span>
