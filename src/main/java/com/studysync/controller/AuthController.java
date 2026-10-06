@@ -87,7 +87,7 @@ public class AuthController {
         try {
             request.changeSessionId();
         } catch (IllegalStateException ignored) {
-            session.invalidate();
+            // The container may already have rotated the identifier.
         }
     }
 
