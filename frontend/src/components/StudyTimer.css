@@ -1,0 +1,121 @@
+.study-timer-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(340px, calc(100vw - 48px));
+  z-index: 9999;
+  padding: 18px;
+  border-radius: 18px;
+  background: #121d40;
+  color: white;
+  box-shadow: 0 18px 45px rgba(18, 29, 64, 0.3);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.study-timer-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.study-timer-header strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.study-timer-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: #aeb7d8;
+  font-weight: 700;
+}
+
+.timer-state {
+  background: #24845b;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.timer-state.paused {
+  background: #a76d12;
+}
+
+.study-timer-time {
+  margin: 15px 0 10px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.study-timer-progress {
+  height: 6px;
+  overflow: hidden;
+  background: #2d385d;
+  border-radius: 99px;
+}
+
+.study-timer-progress span {
+  display: block;
+  height: 100%;
+  background: #7357f5;
+  border-radius: inherit;
+  transition: width 0.25s linear;
+}
+
+.study-timer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.study-timer-actions button,
+.timer-notification-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.study-timer-actions button {
+  flex: 1;
+  color: #18213f;
+  background: white;
+}
+
+.study-timer-actions .timer-stop {
+  color: white;
+  background: #a33c4b;
+}
+
+.timer-notification-button {
+  width: 100%;
+  margin-top: 9px;
+  color: white;
+  background: #6752e9;
+}
+
+.study-timer-widget small {
+  display: block;
+  margin-top: 9px;
+  color: #aeb7d8;
+  line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+  .study-timer-widget {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+}
