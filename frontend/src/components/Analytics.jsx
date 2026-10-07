@@ -48,6 +48,7 @@ function Analytics() {
         <nav>
           <button onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button onClick={() => navigate("/tasks")}>Tasks</button>
+          <button onClick={() => navigate("/subjects")}>Subjects</button>
           <button onClick={() => navigate("/study-sessions")}>Study Sessions</button>
           <button className="active">Study Analytics</button>
           <button onClick={() => navigate("/coding-platforms")}>Coding Platforms</button>
