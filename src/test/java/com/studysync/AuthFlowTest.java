@@ -58,7 +58,7 @@ class AuthFlowTest {
         String registration = """
                 {
                   "name": "First Student",
-                  "email": "duplicate@example.com",
+                  "email": "duplicate-auth-flow@example.com",
                   "course": "AI",
                   "password": "StrongPass123"
                 }
