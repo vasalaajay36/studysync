@@ -7,7 +7,7 @@
   "deploy": {
     "startCommand": "java -jar target/studysync-0.0.1-SNAPSHOT.jar",
     "healthcheckPath": "/",
-    "healthcheckTimeout": 90,
+    "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
