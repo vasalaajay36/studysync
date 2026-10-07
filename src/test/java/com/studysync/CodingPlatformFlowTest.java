@@ -21,8 +21,7 @@ class CodingPlatformFlowTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void authenticatedStudentCanCreateListAndDeleteCodingProfile() throws Exception {
