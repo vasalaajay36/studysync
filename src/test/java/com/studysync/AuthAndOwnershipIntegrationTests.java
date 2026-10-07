@@ -47,7 +47,7 @@ class AuthAndOwnershipIntegrationTests {
         String registration = """
                 {
                   "name": "Test Student",
-                  "email": "auth-test@example.com",
+                  "email": "auth-ownership@example.com",
                   "course": "Computer Science",
                   "password": "strongpass123"
                 }
@@ -57,7 +57,7 @@ class AuthAndOwnershipIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registration))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("auth-test@example.com"))
+                .andExpect(jsonPath("$.email").value("auth-ownership@example.com"))
                 .andReturn();
 
         MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
@@ -68,7 +68,7 @@ class AuthAndOwnershipIntegrationTests {
         mockMvc.perform(get("/api/auth/me").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Student"))
-                .andExpect(jsonPath("$.email").value("auth-test@example.com"));
+                .andExpect(jsonPath("$.email").value("auth-ownership@example.com"));
     }
 
     @Test
