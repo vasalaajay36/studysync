@@ -44,19 +44,19 @@ function Dashboard() {
         codingPlatformsResponse,
         analyticsResponse,
       ] = await Promise.all([
-        fetch(`/api/dashboard/${studentId}`, {
+        fetch("/api/dashboard", {
           credentials: "include",
         }),
 
         fetch(
-          `/api/tasks/student/${studentId}`,
+          "/api/tasks",
           {
             credentials: "include",
           }
         ),
 
         fetch(
-          `/api/study-sessions/student/${studentId}`,
+          "/api/study-sessions",
           {
             credentials: "include",
           }
