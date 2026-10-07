@@ -1,5 +1,6 @@
 package com.studysync;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,6 +20,9 @@ class CodingPlatformFlowTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void authenticatedStudentCanCreateListAndDeleteCodingProfile() throws Exception {
@@ -65,8 +69,7 @@ class CodingPlatformFlowTest {
                 .andReturn();
 
         String response = createResult.getResponse().getContentAsString();
-        long id = com.fasterxml.jackson.databind.json.JsonMapper.builder().build()
-                .readTree(response).path("id").asLong();
+        long id = objectMapper.readTree(response).path("id").asLong();
 
         mockMvc.perform(get("/api/coding-platforms").session(session))
                 .andExpect(status().isOk())
