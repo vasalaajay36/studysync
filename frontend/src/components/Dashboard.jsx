@@ -275,6 +275,14 @@ function Dashboard() {
 
             <button
               className="nav-item"
+              onClick={() => (window.location.href = "/subjects")}
+            >
+              <span className="nav-icon">▦</span>
+              Subjects
+            </button>
+
+            <button
+              className="nav-item"
               onClick={goToStudySessions}
             >
               <span className="nav-icon">◷</span>
