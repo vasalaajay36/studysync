@@ -40,6 +40,12 @@ class AuthAndOwnershipIntegrationTests {
 
         mockMvc.perform(get("/api/analytics"))
                 .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/dashboard"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/students"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
