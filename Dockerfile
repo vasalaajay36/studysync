@@ -12,13 +12,12 @@ RUN npm run build
 FROM maven:3.9.16-eclipse-temurin-21 AS backend-build
 WORKDIR /app
 
-COPY pom.xml mvnw ./
-COPY .mvn/ .mvn/
+COPY pom.xml ./
 COPY src/ src/
 COPY --from=frontend-build /app/frontend/dist frontend/dist
 
 # The frontend has already been built in the first stage.
-RUN ./mvnw -B -DskipTests -Dfrontend.skip=true package
+RUN mvn -B -DskipTests -Dfrontend.skip=true package
 
 # Small production runtime image.
 FROM eclipse-temurin:21-jre
