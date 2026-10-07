@@ -1,11 +1,13 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "RAILPACK",
-    "buildCommand": "mvn -DskipTests clean package"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "java -jar target/studysync-0.0.1-SNAPSHOT.jar",
+    "startCommand": "java -jar app.jar",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
