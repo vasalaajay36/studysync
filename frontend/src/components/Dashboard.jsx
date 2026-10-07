@@ -72,23 +72,23 @@ function Dashboard() {
       ]);
 
       if (!dashboardResponse.ok) {
-        throw new Error("Unable to load dashboard data");
+        throw new Error(`Unable to load dashboard data (HTTP ${dashboardResponse.status})`);
       }
 
       if (!tasksResponse.ok) {
-        throw new Error("Unable to load tasks");
+        throw new Error(`Unable to load tasks (HTTP ${tasksResponse.status})`);
       }
 
       if (!studySessionsResponse.ok) {
-        throw new Error("Unable to load study sessions");
+        throw new Error(`Unable to load study sessions (HTTP ${studySessionsResponse.status})`);
       }
 
       if (!codingPlatformsResponse.ok) {
-        throw new Error("Unable to load coding platforms");
+        throw new Error(`Unable to load coding platforms (HTTP ${codingPlatformsResponse.status})`);
       }
 
       if (!analyticsResponse.ok) {
-        throw new Error("Unable to load study analytics");
+        throw new Error(`Unable to load study analytics (HTTP ${analyticsResponse.status})`);
       }
 
       const dashboardData = await dashboardResponse.json();
