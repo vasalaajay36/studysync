@@ -234,7 +234,7 @@ class AuthAndOwnershipIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(subjectRequest))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.studentId").value(ownerId))
+                .andExpect(jsonPath("$.studentId").value((int) ownerId))
                 .andReturn();
         long subjectId = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(subjectResult.getResponse().getContentAsString())
@@ -255,7 +255,7 @@ class AuthAndOwnershipIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(sessionRequest))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.studentId").value(ownerId))
+                .andExpect(jsonPath("$.studentId").value((int) ownerId))
                 .andReturn();
         long studySessionId = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(studyResult.getResponse().getContentAsString())
