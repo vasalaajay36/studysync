@@ -176,4 +176,97 @@ class AuthAndOwnershipIntegrationTests {
         mockMvc.perform(get("/api/tasks/" + taskId).session(secondSession))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void studentCannotReadAnotherStudentsSubjectOrStudySession() throws Exception {
+        var ownerRegistration = """
+                {
+                  "name": "Academic Owner",
+                  "email": "academic-owner@example.com",
+                  "course": "AI",
+                  "password": "strongpass123"
+                }
+                """;
+        var otherRegistration = """
+                {
+                  "name": "Academic Other",
+                  "email": "academic-other@example.com",
+                  "course": "AI",
+                  "password": "strongpass456"
+                }
+                """;
+
+        var ownerResult = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ownerRegistration))
+                .andExpect(status().isCreated())
+                .andReturn();
+        MockHttpSession ownerSession = (MockHttpSession) ownerResult.getRequest().getSession(false);
+        if (ownerSession == null) {
+            fail("Owner registration did not create an HTTP session");
+        }
+        long ownerId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(ownerResult.getResponse().getContentAsString())
+                .path("id").asLong();
+
+        var otherResult = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(otherRegistration))
+                .andExpect(status().isCreated())
+                .andReturn();
+        MockHttpSession otherSession = (MockHttpSession) otherResult.getRequest().getSession(false);
+        if (otherSession == null) {
+            fail("Other registration did not create an HTTP session");
+        }
+        long otherId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(otherResult.getResponse().getContentAsString())
+                .path("id").asLong();
+
+        var subjectRequest = """
+                {
+                  "name": "Private Subject",
+                  "description": "Ownership integration test",
+                  "studentId": %d
+                }
+                """.formatted(otherId);
+        var subjectResult = mockMvc.perform(post("/api/subjects")
+                        .session(ownerSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(subjectRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.studentId").value(ownerId))
+                .andReturn();
+        long subjectId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(subjectResult.getResponse().getContentAsString())
+                .path("id").asLong();
+
+        var sessionRequest = """
+                {
+                  "topic": "Private Study Session",
+                  "description": "Ownership integration test",
+                  "date": "2026-10-09",
+                  "durationMinutes": 45,
+                  "completed": false,
+                  "studentId": %d
+                }
+                """.formatted(otherId);
+        var studyResult = mockMvc.perform(post("/api/study-sessions")
+                        .session(ownerSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(sessionRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.studentId").value(ownerId))
+                .andReturn();
+        long studySessionId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(studyResult.getResponse().getContentAsString())
+                .path("id").asLong();
+
+        mockMvc.perform(get("/api/subjects/" + subjectId).session(otherSession))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/study-sessions/" + studySessionId).session(otherSession))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/dashboard/" + ownerId).session(otherSession))
+                .andExpect(status().isForbidden());
+    }
+
 }
