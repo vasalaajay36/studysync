@@ -89,7 +89,7 @@ function platformInfo(name) {
       icon: "CP",
       description: "Coding Platform",
       profileUrl: "",
-      automatic: true,
+      automatic: false,
     }
   );
 }
