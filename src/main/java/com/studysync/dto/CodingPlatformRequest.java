@@ -13,20 +13,20 @@ public class CodingPlatformRequest {
     @NotBlank
     private String username;
 
-    @Min(0)
+    @PositiveOrZero
     private Integer problemsSolved;
-    @Min(0)
+    @PositiveOrZero
     private Double rating;
-    @Min(0)
+    @PositiveOrZero
     private Long globalRank;
     private String rankTitle;
-    @Min(0)
+    @PositiveOrZero
     private Integer contestsParticipated;
-    @Min(0)
+    @PositiveOrZero
     private Double highestRating;
-    @Min(0)
+    @PositiveOrZero
     private Integer streak;
-    @Min(0)
+    @PositiveOrZero
     private Long platformRank;
 
     public CodingPlatformRequest() {}
