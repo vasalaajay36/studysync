@@ -100,8 +100,7 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 - Save, edit, and delete coding profiles
 - Store username, profile URL, solved problems, rating, ranks, contests, streak, and highest rating
-- Automatically fetch supported **LeetCode** profiles
-- Automatically fetch supported **Codeforces** profiles
+- Automatically fetch public profile statistics for **LeetCode**, **Codeforces**, **CodeChef**, **HackerRank**, **SPOJ**, and **CSES** when each platform exposes the required public data
 - Gracefully report expired sessions, invalid usernames, upstream API failures, and timeouts
 - Manually enter statistics for platforms without automatic API integration
 
@@ -316,7 +315,7 @@ The analytics window supports 7–30 days.
 | DELETE | `/api/coding-platforms/{id}` | Delete your coding profile |
 | POST | `/api/coding-platforms/fetch?platform=...&username=...` | Fetch supported profile statistics without saving them |
 
-Automatic profile fetching currently supports **LeetCode** and **Codeforces**.
+Automatic fetching is available for **LeetCode**, **Codeforces**, **CodeChef**, **HackerRank**, **SPOJ**, and **CSES**. Availability and completeness of statistics depend on each platform's public profile/API and may change if the platform changes its response.
 
 ### Study Timer
 
