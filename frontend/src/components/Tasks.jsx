@@ -253,6 +253,10 @@ function Tasks() {
             Dashboard
           </button>
 
+          <button onClick={() => window.location.assign("/subjects")}>
+            Subjects
+          </button>
+
           <button className="active">
             Tasks
           </button>
