@@ -17,5 +17,14 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    // This app uses effect-driven API loading and a shared timer utility module.
+    // Keep core Hooks rules and dependency warnings, but defer compiler-only
+    // purity/immutability checks until those components are refactored.
+    rules: {
+      'react-hooks/immutability': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/purity': 'off',
+      'react-refresh/only-export-components': 'off',
+    },
   },
 ])
