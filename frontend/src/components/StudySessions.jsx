@@ -46,13 +46,13 @@ function StudySessions() {
   const activeSession = sessions.find((session) => session.id === activeSessionId) || null;
 
   useEffect(() => {
-    if (!student) {
+    if (!studentId) {
       window.location.href = "/";
       return;
     }
 
     loadSessions();
-  }, []);
+  }, [studentId]);
 
   useEffect(() => {
     if (!timerRunning) return undefined;
