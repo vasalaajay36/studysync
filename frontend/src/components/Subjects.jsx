@@ -16,22 +16,26 @@ function Subjects() {
       window.location.replace("/");
       return;
     }
-    loadSubjects();
-  }, [studentId]);
 
-  const loadSubjects = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/subjects/student/${student.id}`);
-      if (!response.ok) throw new Error("Unable to load subjects");
-      setSubjects(await response.json());
-    } catch (error) {
-      console.error("Subject loading error:", error);
-      alert(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    let active = true;
+    const loadSubjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/subjects");
+        if (!response.ok) throw new Error("Unable to load subjects");
+        const data = await response.json();
+        if (active) setSubjects(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Subject loading error:", error);
+        if (active) alert(error.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadSubjects();
+    return () => { active = false; };
+  }, [studentId]);
 
   const resetForm = () => {
     setFormData({ name: "", description: "" });
