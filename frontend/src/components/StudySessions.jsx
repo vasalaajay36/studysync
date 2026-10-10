@@ -36,6 +36,7 @@ function StudySessions() {
   const [timerRunning, setTimerRunning] = useState(false);
   const [focusBlocks, setFocusBlocks] = useState(0);
   const [elapsedFocusMinutes, setElapsedFocusMinutes] = useState(0);
+  const [, setBreakSeconds] = useState(0);
   const [showTimerPopup, setShowTimerPopup] = useState(false);
 
   useEffect(() => {
