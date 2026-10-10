@@ -82,6 +82,9 @@ public class CodingPlatformService {
 
     public CodingPlatformResponse fetchProfile(String platformName, String username) {
         String name = normalizePlatformName(platformName);
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Coding platform username is required");
+        }
         String user = username.trim();
         CodingPlatform result = new CodingPlatform();
         result.setName(name);
