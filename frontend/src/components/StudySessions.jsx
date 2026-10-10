@@ -43,6 +43,7 @@ function StudySessions() {
   const [showTimerPopup, setShowTimerPopup] = useState(false);
   const finishTimerPhaseRef = useRef(null);
   const loadSessionsRef = useRef(null);
+  const activeSession = sessions.find((session) => session.id === activeSessionId) || null;
 
   useEffect(() => {
     if (!student) {
@@ -101,8 +102,6 @@ function StudySessions() {
       finishTimerPhaseRef.current?.();
     }
   }, [timerRunning, timerSeconds, activeSession, timerMode]);
-
-  const activeSession = sessions.find((session) => session.id === activeSessionId) || null;
 
   const loadSessions = async () => {
     try {
