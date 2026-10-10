@@ -23,7 +23,7 @@ function Analytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadAnalytics(7);
