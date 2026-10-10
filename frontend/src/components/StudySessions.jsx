@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./StudySessions.css";
 import {
   BLOCKS_BEFORE_LONG_BREAK,
@@ -41,6 +41,7 @@ function StudySessions() {
   const [elapsedFocusMinutes, setElapsedFocusMinutes] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
   const [showTimerPopup, setShowTimerPopup] = useState(false);
+  const finishTimerPhaseRef = useRef(null);
 
   useEffect(() => {
     if (!student) {
@@ -78,7 +79,7 @@ function StudySessions() {
 
   useEffect(() => {
     if (timerRunning && timerSeconds === 0 && activeSession && timerMode !== "complete") {
-      finishTimerPhase();
+      finishTimerPhaseRef.current?.();
     }
   }, [timerRunning, timerSeconds, activeSession, timerMode]);
 
@@ -321,6 +322,8 @@ function StudySessions() {
       `${longBreak ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES} minutes. Step away and recharge.`
     );
   };
+
+  finishTimerPhaseRef.current = finishTimerPhase;
 
   const toggleTimer = () => {
     if (!activeSession || timerMode === "complete") return;
