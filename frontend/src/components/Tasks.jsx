@@ -26,29 +26,24 @@ function Tasks() {
       return;
     }
 
-    loadTasks();
-  }, [studentId]);
-
-  const loadTasks = () => {
-    fetch(
-      `/api/tasks/student/${student.id}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to load tasks");
-        }
-
-        return response.json();
-      })
-      .then((data) => {
-        setTasks(data);
-        setLoading(false);
-      })
-      .catch((error) => {
+    let active = true;
+    const loadTasks = async () => {
+      try {
+        const response = await fetch("/api/tasks");
+        if (!response.ok) throw new Error("Unable to load tasks");
+        const data = await response.json();
+        if (active) setTasks(Array.isArray(data) ? data : []);
+      } catch (error) {
         console.error("Task loading error:", error);
-        setLoading(false);
-      });
-  };
+        if (active) window.alert(error.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadTasks();
+    return () => { active = false; };
+  }, [studentId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
