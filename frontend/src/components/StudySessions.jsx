@@ -134,7 +134,9 @@ function StudySessions() {
     }
   };
 
-  loadSessionsRef.current = loadSessions;
+  useEffect(() => {
+    loadSessionsRef.current = loadSessions;
+  });
 
   const handleChange = (event) => {
     const { name, value } = event.target;
