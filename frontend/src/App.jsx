@@ -57,10 +57,11 @@ function ProtectedPage({ children }) {
         }
       })
       .catch(() => {
+        // Ignore a request that failed after this protected page unmounted.
+        // Otherwise a stale request can clear a valid session during navigation.
+        if (!active) return;
         localStorage.removeItem("student");
-        if (active) {
-          window.location.replace("/");
-        }
+        window.location.replace("/");
       });
 
     return () => {
