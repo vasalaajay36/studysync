@@ -57,7 +57,13 @@ export async function requestTimerNotificationPermission() {
 }
 
 export function stopStudyTimer() {
+  const current = readTimer();
   broadcast(null);
+  if (current) {
+    window.dispatchEvent(
+      new CustomEvent("studysync-timer-stopped", { detail: current })
+    );
+  }
 }
 
 export function startStudyTimer(session) {
@@ -346,10 +352,10 @@ function StudyTimer() {
     if (!timer || timer.status !== "running" || remainingMs > 0) return;
 
     const completedTimer = { ...timer, status: "completed", remainingMs: 0 };
-    broadcast(null);
-    markSessionCompleted(timer);
+    broadcast(completedTimer);
     showTimerNotification(timer, 0, true);
     setTimer(completedTimer);
+    void markSessionCompleted(timer).finally(() => broadcast(null));
   }, [remainingMs, timer]);
 
   useEffect(() => {
