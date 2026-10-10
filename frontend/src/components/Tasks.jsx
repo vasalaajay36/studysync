@@ -102,15 +102,13 @@ function Tasks() {
       })
       .then((savedTask) => {
         if (editingTask) {
-          setTasks(
-            tasks.map((task) =>
-              task.id === savedTask.id
-                ? savedTask
-                : task
+          setTasks((current) =>
+            current.map((task) =>
+              task.id === savedTask.id ? savedTask : task
             )
           );
         } else {
-          setTasks([...tasks, savedTask]);
+          setTasks((current) => [...current, savedTask]);
         }
 
         resetForm();
@@ -170,8 +168,8 @@ function Tasks() {
         return response.json();
       })
       .then((updatedTaskFromServer) => {
-        setTasks(
-          tasks.map((currentTask) =>
+        setTasks((current) =>
+          current.map((currentTask) =>
             currentTask.id === updatedTaskFromServer.id
               ? updatedTaskFromServer
               : currentTask
@@ -204,8 +202,8 @@ function Tasks() {
           throw new Error("Unable to delete task");
         }
 
-        setTasks(
-          tasks.filter((task) => task.id !== taskId)
+        setTasks((current) =>
+          current.filter((task) => task.id !== taskId)
         );
       })
       .catch((error) => {
