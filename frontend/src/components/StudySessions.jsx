@@ -9,6 +9,9 @@ import {
   notifyTimer,
   requestTimerNotificationPermission,
   startStudyTimer,
+  pauseStudyTimer,
+  resumeStudyTimer,
+  skipStudyBreak,
   stopStudyTimer,
 } from "./StudyTimer.jsx";
 
@@ -36,7 +39,7 @@ function StudySessions() {
   const [timerRunning, setTimerRunning] = useState(false);
   const [focusBlocks, setFocusBlocks] = useState(0);
   const [elapsedFocusMinutes, setElapsedFocusMinutes] = useState(0);
-  const [, setBreakSeconds] = useState(0);
+  const [breakSeconds, setBreakSeconds] = useState(0);
   const [showTimerPopup, setShowTimerPopup] = useState(false);
 
   useEffect(() => {
@@ -53,18 +56,31 @@ function StudySessions() {
     if (!timerRunning) return undefined;
 
     const interval = window.setInterval(() => {
-      setTimerSeconds((current) => {
-        if (current <= 1) {
-          window.clearInterval(interval);
-          finishTimerPhase();
-          return 0;
-        }
-        return current - 1;
-      });
+      setTimerSeconds((current) => Math.max(0, current - 1));
     }, 1000);
 
     return () => window.clearInterval(interval);
   }, [timerRunning]);
+
+  // The shared timer can also be paused/resumed from its floating widget on
+  // another page. Keep the Study Sessions controls in sync with that state.
+  useEffect(() => {
+    const handleSharedTimerChange = (event) => {
+      const sharedTimer = event.detail;
+      if (!sharedTimer || sharedTimer.sessionId === activeSessionId) {
+        setTimerRunning(Boolean(sharedTimer && sharedTimer.status === "running"));
+      }
+    };
+
+    window.addEventListener("studysync-timer-change", handleSharedTimerChange);
+    return () => window.removeEventListener("studysync-timer-change", handleSharedTimerChange);
+  }, [activeSessionId]);
+
+  useEffect(() => {
+    if (timerRunning && timerSeconds === 0 && activeSession && timerMode !== "complete") {
+      finishTimerPhase();
+    }
+  }, [timerRunning, timerSeconds, activeSession, timerMode]);
 
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId) || null,
@@ -256,6 +272,7 @@ function StudySessions() {
   };
 
   const finishTimerPhase = () => {
+    pauseStudyTimer();
     setTimerRunning(false);
 
     if (timerMode === "break") {
@@ -288,6 +305,7 @@ function StudySessions() {
       notifyTimer("Study session complete", `Great work on ${activeSession.topic}!`);
       setTimerSeconds(0);
       setTimerMode("complete");
+      stopStudyTimer();
       toggleSessionStatus(activeSession);
       return;
     }
@@ -306,12 +324,20 @@ function StudySessions() {
 
   const toggleTimer = () => {
     if (!activeSession || timerMode === "complete") return;
-    setTimerRunning((running) => !running);
+
+    if (timerRunning) {
+      pauseStudyTimer();
+      setTimerRunning(false);
+    } else {
+      resumeStudyTimer();
+      setTimerRunning(true);
+    }
   };
 
   const skipBreak = () => {
     if (timerMode !== "break") return;
 
+    skipStudyBreak(breakSeconds);
     setTimerRunning(false);
     setTimerMode("focus");
     const remainingMinutes = Math.max(
