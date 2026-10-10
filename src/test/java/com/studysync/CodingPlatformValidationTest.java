@@ -89,6 +89,18 @@ class CodingPlatformValidationTest {
                 .andExpect(jsonPath("$[0].username").value("isolationuser"));
     }
 
+    @Test
+    void blankUsernameIsRejectedBeforeCallingExternalPlatform() throws Exception {
+        MockHttpSession session = register("blank-username@example.com", "Blank Username");
+
+        mockMvc.perform(post("/api/coding-platforms/fetch")
+                        .session(session)
+                        .param("platform", "LeetCode")
+                        .param("username", " "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Coding platform username is required"));
+    }
+
     private MockHttpSession register(String email, String name) throws Exception {
         String body = """
                 {
