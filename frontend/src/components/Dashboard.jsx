@@ -21,8 +21,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const studentId = student?.id;
-
   useEffect(() => {
     if (!student) {
       window.location.href = "/";
