@@ -258,12 +258,16 @@ public class CodingPlatformService {
             LocalDate date = LocalDate.now(ZoneOffset.UTC);
             int streak = 0;
 
-            while (calendar.has(String.valueOf(date.toEpochDay() * 86400))) {
-                int submissions = calendar
-                        .path(String.valueOf(date.toEpochDay() * 86400))
-                        .asInt(0);
+            // A current streak remains active when the last submission was
+            // yesterday. Start from today only when today's count is positive.
+            String todayKey = String.valueOf(date.toEpochDay() * 86400);
+            if (calendar.path(todayKey).asInt(0) <= 0) {
+                date = date.minusDays(1);
+            }
 
-                if (submissions <= 0) {
+            while (true) {
+                String dayKey = String.valueOf(date.toEpochDay() * 86400);
+                if (calendar.path(dayKey).asInt(0) <= 0) {
                     break;
                 }
 
