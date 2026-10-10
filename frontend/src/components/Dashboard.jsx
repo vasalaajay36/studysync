@@ -4,6 +4,7 @@ import "./Dashboard.css";
 function Dashboard() {
   const studentData = localStorage.getItem("student");
   const student = studentData ? JSON.parse(studentData) : null;
+  const studentId = student?.id ?? null;
 
   const [stats, setStats] = useState({
     totalSubjects: 0,
@@ -22,13 +23,13 @@ function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!student) {
+    if (!studentId) {
       window.location.href = "/";
       return;
     }
 
     loadDashboard();
-  }, []);
+  }, [studentId]);
 
   const loadDashboard = async () => {
     try {
