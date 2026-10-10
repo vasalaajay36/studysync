@@ -61,20 +61,77 @@ export function stopStudyTimer() {
 }
 
 export function startStudyTimer(session) {
+  const focusDurationMinutes = Math.max(1, Number(session.durationMinutes) || 1);
+  const focusBlocks = Math.ceil(focusDurationMinutes / FOCUS_BLOCK_MINUTES);
+  const breakCount = Math.max(0, focusBlocks - 1);
+  const longBreakCount = Math.floor(breakCount / BLOCKS_BEFORE_LONG_BREAK);
+  const shortBreakCount = breakCount - longBreakCount;
+  const wallDurationMinutes =
+    focusDurationMinutes
+    + shortBreakCount * SHORT_BREAK_MINUTES
+    + longBreakCount * LONG_BREAK_MINUTES;
+  const startedAt = Date.now();
   const timer = {
     status: "running",
     sessionId: session.id,
     topic: session.topic,
     description: session.description || "",
     studyDate: session.studyDate || session.date,
-    durationMinutes: Number(session.durationMinutes),
-    startedAt: Date.now(),
-    endAt: Date.now() + Number(session.durationMinutes) * 60 * 1000,
-    remainingMs: Number(session.durationMinutes) * 60 * 1000,
+    durationMinutes: wallDurationMinutes,
+    focusDurationMinutes,
+    startedAt,
+    endAt: startedAt + wallDurationMinutes * 60 * 1000,
+    remainingMs: wallDurationMinutes * 60 * 1000,
   };
 
   broadcast(timer);
   return timer;
+}
+
+export function pauseStudyTimer() {
+  const timer = readTimer();
+  if (!timer || timer.status !== "running") return timer;
+
+  const paused = {
+    ...timer,
+    status: "paused",
+    remainingMs: Math.max(0, Number(timer.endAt) - Date.now()),
+  };
+  broadcast(paused);
+  return paused;
+}
+
+export function resumeStudyTimer() {
+  const timer = readTimer();
+  if (!timer || timer.status !== "paused") return timer;
+
+  const resumed = {
+    ...timer,
+    status: "running",
+    endAt: Date.now() + Math.max(0, Number(timer.remainingMs) || 0),
+  };
+  broadcast(resumed);
+  return resumed;
+}
+
+export function skipStudyBreak(breakSeconds) {
+  const timer = readTimer();
+  if (!timer || !Number.isFinite(Number(breakSeconds)) || Number(breakSeconds) <= 0) {
+    return timer;
+  }
+
+  const now = Date.now();
+  const currentRemaining = timer.status === "paused"
+    ? Math.max(0, Number(timer.remainingMs) || 0)
+    : Math.max(0, Number(timer.endAt) - now);
+  const remainingMs = Math.max(0, currentRemaining - Number(breakSeconds) * 1000);
+  const adjusted = {
+    ...timer,
+    remainingMs,
+    ...(timer.status === "running" ? { endAt: now + remainingMs } : {}),
+  };
+  broadcast(adjusted);
+  return adjusted;
 }
 
 function formatTime(ms) {
@@ -321,26 +378,15 @@ function StudyTimer() {
   }, [timer]);
 
   const pauseTimer = () => {
-    if (!timer || timer.status !== "running") return;
-    const paused = {
-      ...timer,
-      status: "paused",
-      remainingMs: Math.max(0, Number(timer.endAt) - Date.now()),
-    };
-    broadcast(paused);
-    setTimer(paused);
+    const paused = pauseStudyTimer();
+    if (paused) setTimer(paused);
   };
 
   const resumeTimer = async () => {
     if (!timer || timer.status !== "paused") return;
-    const resumed = {
-      ...timer,
-      status: "running",
-      endAt: Date.now() + Number(timer.remainingMs),
-    };
     await requestTimerNotificationPermission();
-    broadcast(resumed);
-    setTimer(resumed);
+    const resumed = resumeStudyTimer();
+    if (resumed) setTimer(resumed);
   };
 
   const stopTimer = () => {
