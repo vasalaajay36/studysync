@@ -54,6 +54,52 @@ class AuthFlowTest {
     }
 
     @Test
+    void loginAcceptsValidPasswordAndRejectsInvalidPassword() throws Exception {
+        String registration = """
+                {
+                  "name": "Login Student",
+                  "email": "login-flow@example.com",
+                  "course": "Artificial Intelligence",
+                  "password": "StrongPass123"
+                }
+                """;
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registration))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "login-flow@example.com",
+                                  "password": "WrongPass123"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized());
+
+        var loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "LOGIN-FLOW@example.com",
+                                  "password": "StrongPass123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("login-flow@example.com"))
+                .andReturn();
+
+        MockHttpSession loginSession =
+                (MockHttpSession) loginResult.getRequest().getSession(false);
+
+        mockMvc.perform(get("/api/auth/me").session(loginSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Login Student"));
+    }
+
+    @Test
     void duplicateEmailIsRejected() throws Exception {
         String registration = """
                 {
