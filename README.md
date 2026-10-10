@@ -149,10 +149,11 @@ The application provides REST APIs and a browser-based frontend for managing:
 StudySync follows a layered Spring Boot architecture:
 
 ```text
-Frontend (HTML / CSS / JavaScript)
+Frontend (React + Vite)
                 |
+                | HTTP / JSON (same-origin /api)
                 v
-        REST Controllers
+        Spring Boot REST Controllers
                 |
                 v
             Services
@@ -359,7 +360,10 @@ Set the database credentials using environment variables:
 export DB_URL="jdbc:mysql://localhost:3306/studysync_db"
 export DB_USERNAME="root"
 export DB_PASSWORD="your_mysql_password"
+export COOKIE_SECURE=false
 ```
+
+`COOKIE_SECURE=false` is for local development over plain HTTP only. Keep the session cookie secure flag enabled in production; the deployed HTTPS environment should use `COOKIE_SECURE=true`.
 
 The application is configured to use these environment variables. Do not commit real database passwords to GitHub. The Maven build downloads a compatible Node.js runtime, builds the React frontend, and packages it into the Spring Boot static resources.
 
