@@ -25,6 +25,7 @@ const EMPTY_FORM = {
 function StudySessions() {
   const studentData = localStorage.getItem("student");
   const student = studentData ? JSON.parse(studentData) : null;
+  const studentId = student?.id ?? null;
 
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,6 @@ function StudySessions() {
     }
 
     loadSessions();
-    requestTimerNotificationPermission();
   }, []);
 
   useEffect(() => {
