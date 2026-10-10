@@ -488,6 +488,8 @@ function CodingPlatforms() {
         method: "POST",
         credentials: "include",
       });
+    } catch (error) {
+      console.error("Logout request failed:", error);
     } finally {
       localStorage.removeItem("student");
       window.location.assign("/");
