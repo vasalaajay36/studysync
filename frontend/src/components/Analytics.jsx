@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./Analytics.css";
 
 function Analytics() {
@@ -7,7 +7,7 @@ function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadAnalytics = async (period = days) => {
+  const loadAnalytics = useCallback(async (period) => {
     try {
       setLoading(true);
       setError("");
@@ -27,7 +27,7 @@ function Analytics() {
 
   useEffect(() => {
     loadAnalytics(7);
-  }, []);
+  }, [loadAnalytics]);
 
   const navigate = (path) => { window.location.href = path; };
 
