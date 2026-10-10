@@ -21,28 +21,28 @@ const PLATFORM_OPTIONS = [
     icon: "CC",
     description: "Competitive Programming",
     profileUrl: "https://www.codechef.com/users/",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "HackerRank",
     icon: "HR",
     description: "Programming Practice",
     profileUrl: "https://www.hackerrank.com/profile/",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "SPOJ",
     icon: "SP",
     description: "Programming Problems",
     profileUrl: "https://www.spoj.com/users/",
-    automatic: false,
+    automatic: true,
   },
   {
     name: "CSES",
     icon: "CS",
     description: "Algorithmic Problem Set",
     profileUrl: "https://cses.fi/user/",
-    automatic: false,
+    automatic: true,
   },
 ];
 
