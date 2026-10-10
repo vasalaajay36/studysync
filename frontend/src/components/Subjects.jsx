@@ -4,6 +4,7 @@ import "./Subjects.css";
 function Subjects() {
   const studentData = localStorage.getItem("student");
   const student = studentData ? JSON.parse(studentData) : null;
+  const studentId = student?.id ?? null;
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -11,12 +12,12 @@ function Subjects() {
   const [formData, setFormData] = useState({ name: "", description: "" });
 
   useEffect(() => {
-    if (!student) {
+    if (!studentId) {
       window.location.replace("/");
       return;
     }
     loadSubjects();
-  }, []);
+  }, [studentId]);
 
   const loadSubjects = async () => {
     try {
