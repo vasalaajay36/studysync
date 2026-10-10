@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./StudySessions.css";
 import {
   BLOCKS_BEFORE_LONG_BREAK,
@@ -102,10 +102,7 @@ function StudySessions() {
     }
   }, [timerRunning, timerSeconds, activeSession, timerMode]);
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === activeSessionId) || null,
-    [sessions, activeSessionId]
-  );
+  const activeSession = sessions.find((session) => session.id === activeSessionId) || null;
 
   const loadSessions = async () => {
     try {
@@ -347,7 +344,9 @@ function StudySessions() {
     );
   };
 
-  finishTimerPhaseRef.current = finishTimerPhase;
+  useEffect(() => {
+    finishTimerPhaseRef.current = finishTimerPhase;
+  });
 
   const toggleTimer = () => {
     if (!activeSession || timerMode === "complete") return;
