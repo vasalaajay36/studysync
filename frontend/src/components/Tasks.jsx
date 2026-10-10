@@ -4,6 +4,7 @@ import "./Tasks.css";
 function Tasks() {
   const studentData = localStorage.getItem("student");
   const student = studentData ? JSON.parse(studentData) : null;
+  const studentId = student?.id ?? null;
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,13 +21,13 @@ function Tasks() {
   });
 
   useEffect(() => {
-    if (!student) {
+    if (!studentId) {
       window.location.href = "/";
       return;
     }
 
     loadTasks();
-  }, []);
+  }, [studentId]);
 
   const loadTasks = () => {
     fetch(
