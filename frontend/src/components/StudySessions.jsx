@@ -42,6 +42,7 @@ function StudySessions() {
   const [breakSeconds, setBreakSeconds] = useState(0);
   const [showTimerPopup, setShowTimerPopup] = useState(false);
   const finishTimerPhaseRef = useRef(null);
+  const loadSessionsRef = useRef(null);
 
   useEffect(() => {
     if (!student) {
@@ -73,8 +74,26 @@ function StudySessions() {
       }
     };
 
+    const handleSharedTimerStopped = (event) => {
+      if (activeSessionId !== null && event.detail?.sessionId !== activeSessionId) return;
+
+      setTimerRunning(false);
+      setActiveSessionId(null);
+      setTimerSeconds(0);
+      setTimerMode("focus");
+      setFocusBlocks(0);
+      setElapsedFocusMinutes(0);
+      setBreakSeconds(0);
+      setShowTimerPopup(false);
+      loadSessionsRef.current?.();
+    };
+
     window.addEventListener("studysync-timer-change", handleSharedTimerChange);
-    return () => window.removeEventListener("studysync-timer-change", handleSharedTimerChange);
+    window.addEventListener("studysync-timer-stopped", handleSharedTimerStopped);
+    return () => {
+      window.removeEventListener("studysync-timer-change", handleSharedTimerChange);
+      window.removeEventListener("studysync-timer-stopped", handleSharedTimerStopped);
+    };
   }, [activeSessionId]);
 
   useEffect(() => {
@@ -118,6 +137,8 @@ function StudySessions() {
       setLoading(false);
     }
   };
+
+  loadSessionsRef.current = loadSessions;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -305,9 +326,12 @@ function StudySessions() {
     if (activeSession && nextElapsed >= activeSession.durationMinutes) {
       notifyTimer("Study session complete", `Great work on ${activeSession.topic}!`);
       setTimerSeconds(0);
-      setTimerMode("complete");
       stopStudyTimer();
       toggleSessionStatus(activeSession);
+      setActiveSessionId(activeSession.id);
+      setTimerMode("complete");
+      setTimerSeconds(0);
+      setShowTimerPopup(true);
       return;
     }
 
