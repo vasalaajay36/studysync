@@ -355,7 +355,12 @@ function StudyTimer() {
     broadcast(completedTimer);
     showTimerNotification(timer, 0, true);
     setTimer(completedTimer);
-    void markSessionCompleted(timer).finally(() => broadcast(null));
+    void markSessionCompleted(timer).finally(() => {
+      window.dispatchEvent(
+        new CustomEvent("studysync-timer-stopped", { detail: timer })
+      );
+      broadcast(null);
+    });
   }, [remainingMs, timer]);
 
   useEffect(() => {
