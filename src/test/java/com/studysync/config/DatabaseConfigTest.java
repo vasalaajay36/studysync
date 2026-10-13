@@ -47,8 +47,8 @@ class DatabaseConfigTest {
     }
 
     @Test
-    void parsesPostgresqlUrlWithoutQuery() {
-        System.setProperty("DATABASE_URL", "postgresql://dbuser:mypass@localhost:5432/studysync");
+    void parsesAivenMysqlUrlCorrectly() {
+        System.setProperty("DATABASE_URL", "mysql://avnadmin:mypassword@mysql-test.aivencloud.com:20055/defaultdb?ssl-mode=REQUIRED");
 
         HikariConfig hikariConfig = config.resolveConfig(
                 null,
@@ -57,9 +57,26 @@ class DatabaseConfigTest {
                 null
         );
 
-        assertEquals("jdbc:postgresql://localhost:5432/studysync", hikariConfig.getJdbcUrl());
-        assertEquals("dbuser", hikariConfig.getUsername());
-        assertEquals("mypass", hikariConfig.getPassword());
-        assertEquals("org.postgresql.Driver", hikariConfig.getDriverClassName());
+        assertEquals("jdbc:mysql://mysql-test.aivencloud.com:20055/defaultdb?ssl-mode=REQUIRED", hikariConfig.getJdbcUrl());
+        assertEquals("avnadmin", hikariConfig.getUsername());
+        assertEquals("mypassword", hikariConfig.getPassword());
+        assertEquals("com.mysql.cj.jdbc.Driver", hikariConfig.getDriverClassName());
+    }
+
+    @Test
+    void ignoresUnresolvedPlaceholderInDatabaseUrl() {
+        System.setProperty("DATABASE_URL", "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}");
+
+        HikariConfig hikariConfig = config.resolveConfig(
+                "jdbc:mysql://localhost:3306/fallbackdb",
+                "root",
+                "pass",
+                null
+        );
+
+        assertEquals("jdbc:mysql://localhost:3306/fallbackdb", hikariConfig.getJdbcUrl());
+        assertEquals("root", hikariConfig.getUsername());
+        assertEquals("pass", hikariConfig.getPassword());
+        assertEquals("com.mysql.cj.jdbc.Driver", hikariConfig.getDriverClassName());
     }
 }
