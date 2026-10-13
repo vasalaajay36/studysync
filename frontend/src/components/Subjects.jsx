@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Subjects.css";
+import GlobalSidebar from "./GlobalSidebar";
 
 function Subjects() {
   const studentData = localStorage.getItem("student");
@@ -107,18 +108,7 @@ function Subjects() {
 
   return (
     <div className="subjects-page">
-      <aside className="subjects-sidebar">
-        <h2 className="subjects-logo">Study<span>Sync</span></h2>
-        <nav className="subjects-nav">
-          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-          <button onClick={() => navigate("/tasks")}>Tasks</button>
-          <button className="active">Subjects</button>
-          <button onClick={() => navigate("/study-sessions")}>Study Sessions</button>
-          <button onClick={() => navigate("/coding-platforms")}>Coding Platforms</button>
-          <button onClick={() => navigate("/analytics")}>Study Analytics</button>
-        </nav>
-        <button className="logout-subject-button" onClick={logout}>Logout</button>
-      </aside>
+      <GlobalSidebar active="subjects" />
 
       <main className="subjects-main">
         <header className="subjects-header">
