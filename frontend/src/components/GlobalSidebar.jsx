@@ -1,4 +1,5 @@
 import "./GlobalSidebar.css";
+import { stopStudyTimer } from "./StudyTimer.jsx";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/dashboard", icon: "⌂", key: "dashboard" },
@@ -25,6 +26,7 @@ function GlobalSidebar({ active }) {
     } catch (error) {
       console.error("Logout request failed:", error);
     } finally {
+      stopStudyTimer();
       localStorage.removeItem("student");
       window.location.assign("/");
     }
