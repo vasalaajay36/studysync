@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./CodingPlatforms.css";
+import GlobalSidebar from "./GlobalSidebar";
 
 const PLATFORM_OPTIONS = [
   {
@@ -498,29 +499,7 @@ function CodingPlatforms() {
 
   return (
     <div className="coding-platforms-page">
-      <aside className="coding-sidebar">
-        <div className="coding-brand">
-          <h2>
-            Study<span>Sync</span>
-          </h2>
-          <p>Student workspace</p>
-        </div>
-
-        <nav className="coding-nav" aria-label="Main navigation">
-          <button onClick={() => goTo("/dashboard")}>Dashboard</button>
-          <button onClick={() => goTo("/tasks")}>Tasks</button>
-          <button onClick={() => goTo("/subjects")}>Subjects</button>
-          <button onClick={() => goTo("/study-sessions")}>Study Sessions</button>
-          <button className="active" onClick={() => goTo("/coding-platforms")}>
-            Coding Platforms
-          </button>
-          <button onClick={() => goTo("/analytics")}>Study Analytics</button>
-        </nav>
-
-        <button className="logout-coding-button" onClick={logout}>
-          Logout
-        </button>
-      </aside>
+      <GlobalSidebar active="coding-platforms" />
 
       <main className="coding-main">
         <header className="coding-header">
