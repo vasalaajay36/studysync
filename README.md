@@ -360,16 +360,16 @@ Set the database credentials using environment variables:
 export DB_URL="jdbc:mysql://localhost:3306/studysync_db"
 export DB_USERNAME="root"
 export DB_PASSWORD="your_mysql_password"
-export COOKIE_SECURE=false
+export SPRING_PROFILES_ACTIVE=local
 ```
 
-`COOKIE_SECURE=false` is for local development over plain HTTP only. Keep the session cookie secure flag enabled in production; the deployed HTTPS environment should use `COOKIE_SECURE=true`.
+The `local` Spring profile disables the HTTPS-only session-cookie flag and proxy-header processing for localhost development. Do not activate this profile in production. The default production configuration keeps the session cookie secure; set `COOKIE_SECURE=true` in Railway if you want to make that setting explicit.
 
 The application is configured to use these environment variables. Do not commit real database passwords to GitHub. The Maven build downloads a compatible Node.js runtime, builds the React frontend, and packages it into the Spring Boot static resources.
 
 ### Run the application
 
-Using the Maven wrapper:
+Using the Maven wrapper (after configuring the environment variables above):
 
 ```bash
 ./mvnw spring-boot:run
