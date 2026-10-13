@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./Analytics.css";
+import GlobalSidebar from "./GlobalSidebar";
 
 function Analytics() {
   const [data, setData] = useState(null);
@@ -43,30 +44,7 @@ function Analytics() {
 
   return (
     <div className="analytics-page">
-      <aside className="analytics-sidebar">
-        <h2>Study<span>Sync</span></h2>
-        <nav>
-          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-          <button onClick={() => navigate("/tasks")}>Tasks</button>
-          <button onClick={() => navigate("/subjects")}>Subjects</button>
-          <button onClick={() => navigate("/study-sessions")}>Study Sessions</button>
-          <button className="active">Study Analytics</button>
-          <button onClick={() => navigate("/coding-platforms")}>Coding Platforms</button>
-        </nav>
-        <button className="logout" onClick={async () => {
-          try {
-            await fetch("/api/auth/logout", {
-              method: "POST",
-              credentials: "include",
-            });
-          } catch (error) {
-            console.error("Logout request failed:", error);
-          } finally {
-            localStorage.removeItem("student");
-            window.location.assign("/");
-          }
-        }}>Logout</button>
-      </aside>
+      <GlobalSidebar active="analytics" />
 
       <main className="analytics-main">
         <header className="analytics-header">
