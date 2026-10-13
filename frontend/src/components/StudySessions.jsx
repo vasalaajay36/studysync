@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./StudySessions.css";
+import GlobalSidebar from "./GlobalSidebar";
 import {
   BLOCKS_BEFORE_LONG_BREAK,
   FOCUS_BLOCK_MINUTES,
@@ -402,24 +403,7 @@ function StudySessions() {
 
   return (
     <div className="study-sessions-page">
-      <aside className="study-sidebar">
-        <h2 className="study-logo">
-          Study<span>Sync</span>
-        </h2>
-
-        <nav className="study-nav">
-          <button onClick={goToDashboard}>Dashboard</button>
-          <button onClick={goToTasks}>Tasks</button>
-          <button onClick={() => window.location.assign("/subjects")}>Subjects</button>
-          <button className="active">Study Sessions</button>
-          <button onClick={goToCodingPlatforms}>Coding Platforms</button>
-          <button onClick={goToAnalytics}>Study Analytics</button>
-        </nav>
-
-        <button className="logout-study-button" onClick={logout}>
-          Logout
-        </button>
-      </aside>
+      <GlobalSidebar active="study-sessions" />
 
       <main className="study-main">
         <header className="study-header">
