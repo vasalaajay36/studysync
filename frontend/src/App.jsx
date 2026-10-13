@@ -6,7 +6,7 @@ import Tasks from "./components/Tasks";
 import StudySessions from "./components/StudySessions";
 import CodingPlatforms from "./components/CodingPlatforms";
 import Analytics from "./components/Analytics";
-import StudyTimer from "./components/StudyTimer.jsx";
+import StudyTimer, { stopStudyTimer } from "./components/StudyTimer.jsx";
 
 // Keep the server-side session cookie attached to every same-origin API request.
 // The Vite proxy sends /api requests to Spring Boot during local development.
@@ -31,6 +31,7 @@ window.fetch = (input, init = {}) => {
       !new URL(requestUrl, window.location.origin).pathname.startsWith("/api/auth/") &&
       window.location.pathname !== "/"
     ) {
+      stopStudyTimer();
       localStorage.removeItem("student");
       window.location.assign("/");
     }
@@ -60,6 +61,7 @@ function ProtectedPage({ children }) {
         // Ignore a request that failed after this protected page unmounted.
         // Otherwise a stale request can clear a valid session during navigation.
         if (!active) return;
+        stopStudyTimer();
         localStorage.removeItem("student");
         window.location.replace("/");
       });
