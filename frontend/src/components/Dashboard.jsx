@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
+import GlobalSidebar from "./GlobalSidebar";
 
 function Dashboard() {
   const studentData = localStorage.getItem("student");
@@ -249,67 +250,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
-        <div>
-          <h2 className="logo">
-            Study<span>Sync</span>
-          </h2>
-
-          <nav>
-            <button
-              className="nav-item active"
-              onClick={goToDashboard}
-            >
-              <span className="nav-icon">⌂</span>
-              Dashboard
-            </button>
-
-            <button
-              className="nav-item"
-              onClick={goToTasks}
-            >
-              <span className="nav-icon">✓</span>
-              Tasks
-            </button>
-
-            <button
-              className="nav-item"
-              onClick={() => (window.location.href = "/subjects")}
-            >
-              <span className="nav-icon">▦</span>
-              Subjects
-            </button>
-
-            <button
-              className="nav-item"
-              onClick={goToStudySessions}
-            >
-              <span className="nav-icon">◷</span>
-              Study Sessions
-            </button>
-
-            <button
-              className="nav-item"
-              onClick={goToCodingPlatforms}
-            >
-              <span className="nav-icon">&lt;/&gt;</span>
-              Coding Platforms
-            </button>
-
-            <button className="nav-item" onClick={goToAnalytics}>
-              <span className="nav-icon">▥</span>
-              Study Analytics
-            </button>
-          </nav>
-        </div>
-
-        <button
-          className="logout-button"
-          onClick={logout}
-        >
-          Logout
-        </button>
-      </aside>
+      <GlobalSidebar active="dashboard" />
 
       <main className="main-content">
         <header className="dashboard-header">
