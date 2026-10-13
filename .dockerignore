@@ -1,0 +1,8 @@
+.git
+.gitignore
+.idea
+target
+*.log
+.DS_Store
+*.md
+frontend

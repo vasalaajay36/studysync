@@ -26,7 +26,9 @@ WORKDIR /app
 
 COPY --from=backend-build /app/target/studysync-0.0.1-SNAPSHOT.jar app.jar
 
-ENV JAVA_OPTS=""
+ENV PORT=8080
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
