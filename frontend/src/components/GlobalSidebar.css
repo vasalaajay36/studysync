@@ -109,6 +109,15 @@
 }
 
 @media (max-width: 800px) {
+  .dashboard:has(> .global-sidebar),
+  .tasks-page:has(> .global-sidebar),
+  .subjects-page:has(> .global-sidebar),
+  .study-sessions-page:has(> .global-sidebar),
+  .coding-platforms-page:has(> .global-sidebar),
+  .analytics-page:has(> .global-sidebar) {
+    flex-direction: column;
+  }
+
   .global-sidebar {
     width: 100%;
     min-width: 0;
