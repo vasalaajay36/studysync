@@ -479,10 +479,6 @@ function CodingPlatforms() {
     }
   };
 
-    window.location.assign(path);
-  };
-
-
   return (
     <div className="coding-platforms-page">
       <GlobalSidebar active="coding-platforms" />
