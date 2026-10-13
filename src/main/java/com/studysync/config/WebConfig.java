@@ -10,10 +10,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins(
-                        "https://studysync-production-7698.up.railway.app",
-                        "http://localhost:3000",
-                        "http://localhost:5173")
+                // Production serves the React frontend and API from the same origin.
+                // These origins are only for local Vite development.
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
