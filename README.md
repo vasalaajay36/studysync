@@ -22,7 +22,7 @@ A full-stack academic productivity application built with **React, Java, Spring 
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
   <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven" />
-  <img src="https://img.shields.io/badge/Render-Deployment-000000?style=for-the-badge&logo=railway&logoColor=white" alt="Render" />
+  <img src="https://img.shields.io/badge/Render-Deployment-000000?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
 </p>
 
 </div>
@@ -97,7 +97,8 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 - Save, edit, and delete coding profiles
 - Store username, profile URL, solved problems, rating, ranks, contests, streak, and highest rating
-- Automatically fetch public profile statistics for **LeetCode**, **Codeforces**, **CodeChef**, **HackerRank**, **SPOJ**, and **CSES** when each platform exposes the required public data
+- Automatically fetch public profile statistics for **LeetCode** and **Codeforces**
+- Save profile URLs and manually entered statistics for other supported platforms
 - Gracefully report expired sessions, invalid usernames, upstream API failures, and timeouts
 - Manually enter statistics for platforms without automatic API integration
 
