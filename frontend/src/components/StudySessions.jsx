@@ -373,16 +373,6 @@ function StudySessions() {
     window.location.href = "/dashboard";
   };
 
-    window.location.href = "/tasks";
-  };
-
-    window.location.href = "/coding-platforms";
-  };
-
-    window.location.href = "/analytics";
-  };
-
-
   if (!student) return null;
 
   return (
