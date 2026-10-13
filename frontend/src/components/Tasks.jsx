@@ -214,20 +214,7 @@ function Tasks() {
   };
 
   const goToDashboard = () => { window.location.href = "/dashboard"; };
-  const goToStudySessions = () => { window.location.href = "/study-sessions"; };
-  const goToCodingPlatforms = () => { window.location.href = "/coding-platforms"; };
-  const goToAnalytics = () => { window.location.href = "/analytics"; };
 
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } catch (error) {
-      console.error("Logout request failed:", error);
-    } finally {
-      localStorage.removeItem("student");
-      window.location.assign("/");
-    }
-  };
 
   if (!student) {
     return null;
