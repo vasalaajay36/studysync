@@ -1,0 +1,37 @@
+name: Release StudySync
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build and test application
+        run: ./mvnw -B clean verify
+
+      - name: Publish release artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: target/studysync-*.jar
