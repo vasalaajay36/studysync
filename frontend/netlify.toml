@@ -5,7 +5,7 @@
 # Proxy API requests to Render backend
 [[redirects]]
   from = "/api/*"
-  to = "https://studysync-backend.onrender.com/api/:splat"
+  to = "https://studysync-hmji.onrender.com/api/:splat"
   status = 200
   force = true
 
