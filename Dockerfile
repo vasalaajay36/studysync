@@ -15,6 +15,7 @@ WORKDIR /app
 
 COPY pom.xml ./
 COPY src/ src/
+COPY --from=frontend-build /app/frontend/dist frontend/dist
 COPY --from=frontend-build /app/frontend/dist/ src/main/resources/static/
 
 # The frontend has already been built in the first stage.
