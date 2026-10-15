@@ -97,10 +97,10 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 - Save, edit, and delete coding profiles
 - Store username, profile URL, solved problems, rating, ranks, contests, streak, and highest rating
-- Automatically fetch public profile statistics for **LeetCode** and **Codeforces**
-- Save profile URLs and manually entered statistics for other supported platforms
+- Automatically fetch public profile statistics for **LeetCode, Codeforces, CodeChef, HackerRank, SPOJ, and CSES**
+- Refresh saved profiles and persist updated statistics
 - Gracefully report expired sessions, invalid usernames, upstream API failures, and timeouts
-- Manually enter statistics for platforms without automatic API integration
+- Allow manual entry when an external platform temporarily blocks requests or does not expose a statistic
 
 ## Screenshots
 
@@ -121,7 +121,7 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 ### Database
 
-- MySQL
+- MySQL or PostgreSQL (depending on the configured production connection URL)
 
 ### Frontend
 
@@ -142,23 +142,25 @@ The application provides REST APIs and a browser-based frontend for managing:
 
 StudySync is configured for deployment as a Docker Web Service on Render.
 
-Production architecture:
+Supported production architecture (separate frontend):
 
 ```text
-User Browser
-     |
-     v
-Render Public URL
-     |
-     v
-Spring Boot Application + bundled React frontend
-     |
-     v
+Browser
+  |
+  v
+Netlify or Vercel frontend
+  |  /api/* proxy (same-origin browser requests)
+  v
+Render Spring Boot backend
+  |
+  v
 Spring Data JPA / Hibernate
-     |
-     v
-External MySQL-compatible Database
+  |
+  v
+External MySQL-compatible or PostgreSQL database
 ```
+
+The root Dockerfile also packages the React build into Spring Boot, so a combined single-origin deployment is supported. For a separately hosted frontend, keep `frontend/netlify.toml`, `frontend/public/_redirects`, and `frontend/vercel.json` pointed at the same backend. The current proxy target is `https://studysync-hmji.onrender.com`; verify the Render service is healthy before relying on it.
 
 ### Deploy on Render
 
