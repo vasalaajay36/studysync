@@ -33,7 +33,7 @@ A full-stack academic productivity application built with **React, Java, Spring 
 
 **Source Code:** https://github.com/vasalaajay36/studysync
 
-> Deployment target: Render Docker Web Service. A publicly reachable MySQL-compatible database must be configured separately. Add the deployed URL here after the Render deployment and database connection have been verified.
+> Deployment target: Render Docker Web Service. Configure a reachable PostgreSQL database using Render's `DATABASE_URL` connection string, or configure MySQL using the `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` variables. Add the public URL here only after deployment and database connectivity are verified.
 
 ## Overview
 
@@ -164,18 +164,19 @@ The root Dockerfile also packages the React build into Spring Boot, so a combine
 
 ### Deploy on Render
 
-1. Create a MySQL-compatible database with public network access enabled and TLS/SSL required. Keep its credentials private.
+1. Create a managed PostgreSQL database in Render (recommended) or use an external PostgreSQL provider. Keep its credentials private.
 2. In Render, select **New → Blueprint** and connect `vasalaajay36/studysync`. Render reads the root `render.yaml` and configures the Docker web service.
-3. In the StudySync service's **Environment** settings, add:
-   - `DB_URL`: JDBC URL such as `jdbc:mysql://DB_HOST:DB_PORT/DB_NAME?sslMode=REQUIRED` (replace the placeholders with the exact values supplied by your database provider).
-   - `DB_USERNAME`: database username.
-   - `DB_PASSWORD`: database password.
-   - `COOKIE_SECURE`: `true`.
-4. Save and deploy. Render builds the existing multi-stage `Dockerfile`; the React frontend and Spring Boot API share one origin.
-5. Wait for the service to become **Live**, then open its generated `onrender.com` URL. Test registration/login, navigation, task/subject/session CRUD, and coding profiles.
-6. Add the new public URL to the Live Demo section only after the deployment and database connection have been verified.
+3. In the StudySync service's **Environment** settings, configure **one** database connection method:
+   - **PostgreSQL (recommended):** set `DATABASE_URL` to the PostgreSQL connection URL supplied by Render/provider (typically begins with `postgres://` or `postgresql://`). `DatabaseConfig` converts it to a JDBC URL and extracts the connection credentials.
+   - **JDBC URL alternative:** set `DB_URL` to a complete JDBC URL such as `jdbc:postgresql://DB_HOST:DB_PORT/DB_NAME?sslmode=require`, and set `DB_USERNAME` and `DB_PASSWORD`.
+   - For existing MySQL installations, `DB_URL` may be a MySQL JDBC URL and `DB_USERNAME` / `DB_PASSWORD` should contain the corresponding credentials.
+   - Set `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=none` for a separately hosted HTTPS frontend, and set `CORS_ALLOWED_ORIGINS` to the exact frontend origin(s) when direct cross-origin API requests are used.
+   - **Important:** if both `DATABASE_URL` and `DB_URL` are configured, a supported scheme-based `DATABASE_URL` takes precedence.
+4. Save and deploy. Render builds the existing multi-stage `Dockerfile`; the React frontend and Spring Boot API share one origin on the backend service.
+5. Wait for the service to become **Live** and verify `/health`. Then test registration/login, protected page navigation, task/subject/session CRUD, and coding-profile fetch/save/refresh/delete.
+6. Add the public URL to the Live Demo section only after the deployment and database connection have been verified.
 
-Render hosts the application; the MySQL database is separate. The database provider must allow inbound connections from Render and support TLS. A database running on your own computer is not reachable by the cloud service.
+Render hosts the application; the database may be a separate managed PostgreSQL or MySQL service. The database provider must allow inbound connections from the application and support the configured TLS mode. A database running on your own computer is not reachable by the cloud service.
 
 Production credentials belong in environment variables, not in GitHub.
  
