@@ -1,114 +1,89 @@
-# StudySync — Render & PostgreSQL Deployment Guide
+# StudySync — Render Backend Deployment
 
-This document describes how to deploy the **StudySync Spring Boot Backend** to **[Render](https://render.com)** using **PostgreSQL**.
+This repository is a full-stack application. The Render Docker web service builds the React frontend and Spring Boot backend together; the frontend can also be hosted separately on Netlify or Vercel.
 
----
+## Current backend target
 
-## 🚀 Deployment Options on Render
+The frontend proxy configuration currently targets:
 
-You can deploy StudySync using any of the following 3 approaches:
+`https://studysync-hmji.onrender.com`
 
-### Option 1: One-Click Render Blueprint (Recommended)
+Check that this is the intended, healthy Render service before using the proxy. The application health endpoint is `/health`.
 
-1. Push your repository to **GitHub**.
-2. Log into the **[Render Dashboard](https://dashboard.render.com/)**.
-3. Click **New +** > **Blueprint**.
-4. Connect your GitHub repository (`studysync` or the repository containing the backend).
-   - If the repository has the backend at the root: select `./render.yaml`.
-   - If the repository is a monorepo where the backend is nested: set the Blueprint path to `backend/backend/render.yaml`.
-5. Render will detect `render.yaml` and automatically configure:
-   - A free-tier **PostgreSQL database** (`studysync-postgres`).
-   - A free-tier **Web Service** (`studysync-backend`) using the optimized multi-stage `Dockerfile`.
-   - Automatic database linkage (`DATABASE_URL` is wired directly into the web service).
-6. Click **Apply**. Render will provision the database, build the Docker container, and start your backend service!
+## Deploy the web service
 
----
+1. Open the Render Dashboard and create a **Web Service** from `vasalaajay36/studysync`.
+2. Select the `main` branch.
+3. Choose **Docker** and use the repository-root `Dockerfile`. Leave Root Directory blank.
+4. Choose a region near the database and users.
+5. Set the environment variables below, then deploy.
 
-### Option 2: Deploy as a Docker Web Service (Manual)
+The root `render.yaml` configures the web service. It does **not** create a database; provision or select a database separately.
 
-1. In Render, create your PostgreSQL database:
-   - Click **New +** > **PostgreSQL**.
-   - Name: `studysync-postgres`.
-   - Database: `studysync_db`.
-   - User: `studysync_user`.
-   - Plan: **Free**.
-   - Click **Create Database**.
-   - Copy the **Internal Database URL** (e.g., `postgres://studysync_user:pass@dpg-xxx:5432/studysync_db`).
-2. Create your Web Service:
-   - Click **New +** > **Web Service**.
-   - Connect your GitHub repository.
-   - **Root Directory**: Leave blank if repo root contains `pom.xml` / `Dockerfile`; set to `backend/backend` if nested.
-   - **Environment**: **Docker**.
-   - **Dockerfile Path**: `./Dockerfile`.
-   - **Plan**: Free.
-3. Configure Environment Variables in the Web Service settings:
-   | Key | Value / Source | Description |
-   | --- | --- | --- |
-   | `DATABASE_URL` | From linked PostgreSQL database, or paste **Internal Database URL** | Handled automatically by `DatabaseConfig` |
-   | `PORT` | `10000` | Render port (auto-set by Render) |
-   | `COOKIE_SECURE` | `true` | Enables secure session cookies over HTTPS |
-   | `COOKIE_SAME_SITE` | `none` | Allows session cookies across domains (if frontend is hosted separately) |
-   | `CORS_ALLOWED_ORIGINS` | `https://your-frontend.vercel.app,https://your-frontend.onrender.com` | Your frontend production URL |
-4. Click **Create Web Service**.
+## Environment variables
 
----
+Choose one database configuration:
 
-### Option 3: Deploy as Native Java Web Service (No Docker)
+### Option A — MySQL-compatible database
 
-If you prefer using Render's native Java environment instead of Docker:
-1. **Root Directory**: `.` (or `backend/backend` if nested).
-2. **Environment**: **Java**.
-3. **Build Command**: `./mvnw clean package -DskipTests`
-4. **Start Command**: `java -jar target/studysync-0.0.1-SNAPSHOT.jar`
-5. **Environment Variables**:
-   - `JAVA_VERSION`: `21`
-   - `DATABASE_URL`: Your Render PostgreSQL database URL (or `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`).
-   - `COOKIE_SECURE`: `true`
-   - `COOKIE_SAME_SITE`: `none`
+Set these values using the exact connection information from your provider:
 
----
+| Variable | Value |
+|---|---|
+| `DB_URL` | JDBC URL, e.g. `jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED` |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
 
-## 🛠️ Summary of Changes Made to the Codebase
+Replace all placeholders with your provider's values. Do not commit credentials to Git.
 
-1. **PostgreSQL Driver Added (`pom.xml`)**:
-   - Added `org.postgresql:postgresql` runtime dependency.
-   - Maintained MySQL connector compatibility for legacy environments.
-   - Moved `frontend-maven-plugin` into an optional Maven profile activated only when `frontend/package.json` exists, ensuring clean backend-only packaging without build failures.
+### Option B — PostgreSQL provider URL
 
-2. **Automated Render URL Parser (`DatabaseConfig.java`)**:
-   - Automatically intercepts Render's `DATABASE_URL` (in `postgres://user:pass@host:port/db` or `postgresql://...` format).
-   - Converts the URL into a standard JDBC URL (`jdbc:postgresql://host:port/db`), extracts credentials, and applies them to HikariCP.
-   - Sets `initializationFailTimeout = -1` to avoid fast startup crashes if cloud database warming is delayed.
-   - Gracefully falls back to standard properties (`spring.datasource.url`, `DB_URL`, or `application.properties`) for local development and testing.
+Set `DATABASE_URL` to the provider's full `postgres://` or `postgresql://` connection URL. `DatabaseConfig` normalizes that URL to JDBC and extracts its credentials. Do not set a MySQL JDBC URL at the same time unless you intentionally want to use the fallback configuration.
 
-3. **Application Properties (`application.properties`)**:
-   - Defaults to PostgreSQL on port 5432: `jdbc:postgresql://localhost:5432/studysync_db`.
-   - Injects `PORT` dynamically from Render.
-   - Configurable session cookie security (`COOKIE_SECURE`, `COOKIE_SAME_SITE`) for cross-domain frontend communication.
-   - Disabled `spring.jpa.open-in-view` to optimize memory and suppress warnings.
+### Required production settings
 
-4. **Enhanced CORS Configuration (`WebConfig.java`)**:
-   - Dynamically supports `CORS_ALLOWED_ORIGINS` environment variable.
-   - Allows origins matching `*.onrender.com`, `*.vercel.app`, `*.netlify.app`, and `localhost`.
-   - Preserves credentials (`allowCredentials: true`) for cookie-based authentication.
+| Variable | Value |
+|---|---|
+| `COOKIE_SECURE` | `true` |
+| `COOKIE_SAME_SITE` | `none` when the frontend is hosted on a different domain |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated exact frontend origins, e.g. `https://YOUR-SITE.netlify.app,https://YOUR-SITE.vercel.app` |
+| `JPA_DDL_AUTO` | `update` for the current schema-managed deployment, or a deliberate migration strategy when migrations are added |
 
-5. **Production Dockerfile & .dockerignore**:
-   - Multi-stage build using `eclipse-temurin:21-jdk-jammy` and `eclipse-temurin:21-jre-jammy`.
-   - Runs with a non-root `spring` user.
-   - Container-aware JVM memory settings (`-XX:MaxRAMPercentage=75.0`).
+Render provides `PORT` automatically. The app binds to `0.0.0.0` and uses the provided port.
 
-6. **Render Blueprint (`render.yaml`)**:
-   - Defines unified blueprint for 1-click provisioning of PostgreSQL and the Web Service.
+**Session note:** If you host the frontend on a separate domain, it must send credentialed API requests and the backend must allow that exact frontend origin. Do not use `*` as a credentialed CORS origin. The current frontend fetch wrapper includes credentials for same-origin `/api/` calls.
 
----
+## Deploy the frontend separately
 
-## 🧪 Testing Locally with PostgreSQL
+### Netlify
 
-If you want to run PostgreSQL locally:
-```bash
-# Start a local PostgreSQL instance via Docker
-docker run --name studysync-postgres -e POSTGRES_DB=studysync_db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+1. Import `vasalaajay36/studysync`.
+2. Set the base directory to `frontend`.
+3. Build command: `npm run build`.
+4. Publish directory: `dist`.
+5. The repository contains `frontend/netlify.toml` and `frontend/public/_redirects`; both proxy `/api/*` to the same Render backend. Keep these destinations in sync if the backend URL changes.
 
-# Run the backend locally
-./mvnw spring-boot:run
-```
+### Vercel
+
+Import the repository and set the Root Directory to `frontend`. The repository's `frontend/vercel.json` rewrites `/api/*` to the same Render backend and routes the remaining paths to the SPA.
+
+## Verify after deployment
+
+1. Open `https://YOUR-RENDER-SERVICE.onrender.com/health`; expect HTTP 200 and a JSON body with `status: UP`.
+2. Open the frontend domain and register a test account.
+3. Sign out, then sign back in.
+4. Verify Dashboard, Tasks, Subjects, Study Sessions, Coding Platforms, and Analytics navigation.
+5. Create, edit, reload, and delete a task, subject, and study session.
+6. Add a coding profile; test supported automatic fetches, then save and reload the profile.
+7. Confirm an unauthenticated browser cannot access protected API endpoints.
+8. Check Render logs and GitHub Actions if any test fails.
+
+The GitHub Actions workflow runs frontend lint/build and backend tests on pushes and pull requests to `main`.
+
+## Troubleshooting
+
+- **401 on API requests:** sign in again; check that the frontend proxy preserves cookies and the backend uses `COOKIE_SECURE=true` and `COOKIE_SAME_SITE=none` for cross-domain hosting.
+- **CORS rejection:** add the exact frontend origin to `CORS_ALLOWED_ORIGINS`, separated by commas.
+- **Database connection failure:** verify the URL, credentials, TLS requirements, network access, and database availability.
+- **Profile fetch failure:** verify the username and inspect backend logs; external coding sites can rate-limit or change their public profile APIs.
+- **Render free-tier cold start:** the first request after inactivity can take longer than usual.
