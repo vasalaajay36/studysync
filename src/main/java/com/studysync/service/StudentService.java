@@ -9,8 +9,10 @@ import com.studysync.repository.CodingPlatformRepository;
 import com.studysync.repository.StudySessionRepository;
 import com.studysync.repository.SubjectRepository;
 import com.studysync.repository.TaskRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -62,7 +64,10 @@ public class StudentService {
         studentRepository.findByEmailIgnoreCase(email)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("An account with this email already exists");
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "An account with this email already exists"
+                    );
                 });
 
         student.setName(request.getName().trim());
